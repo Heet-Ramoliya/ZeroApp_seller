@@ -8,9 +8,7 @@ const AllAds = () => {
     <View style={styles.container}>
       <View style={styles.mainContent}>
         <Image
-          source={{
-            uri: 'https://png.pngtree.com/thumb_back/fw800/background/20230718/pngtree-d-render-of-isolated-white-background-premium-electric-sports-sedan-car-image_3904468.jpg',
-          }}
+          source={require('../../utils/Images/AllAd.jpg')}
           style={styles.carImage}
         />
         <Text style={styles.title}>Create first ad</Text>

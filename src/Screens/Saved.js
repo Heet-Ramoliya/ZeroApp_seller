@@ -15,7 +15,7 @@ const Saved = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <View style={{marginHorizontal: 20, flex: 1}}>
+    <View style={{marginHorizontal: 10, flex: 1}}>
       {/* SearchBar */}
       <View style={{marginTop: 10, flexDirection: 'row', alignItems: 'center'}}>
         <View

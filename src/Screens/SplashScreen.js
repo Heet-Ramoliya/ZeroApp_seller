@@ -1,11 +1,19 @@
-import {View, Image, StyleSheet, Text} from 'react-native';
+import {View, Image, StyleSheet} from 'react-native';
 import React, {useEffect} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SplashScreen = ({navigation}) => {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('Login');
-    }, 3000);
+    const checkToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem('sessionToken');
+        navigation.replace(token ? 'BottomTabNavigator' : 'Login');
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const timer = setTimeout(checkToken, 3000);
     return () => clearTimeout(timer);
   }, [navigation]);
 

@@ -1,10 +1,20 @@
 import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
 import React from 'react';
 import ProfileList from '../Components/ProfileList';
-import Separator from '../Components/Separator';
 import Button from '../Components/Button';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Profile = () => {
+const Profile = ({navigation}) => {
+  const logout = async () => {
+    try {
+      await AsyncStorage.removeItem('sessionToken');
+      console.log('Successfully removed sessionToken!');
+      navigation.navigate('Login');
+    } catch (error) {
+      console.error('Error in removing sessionToken: ', error);
+    }
+  };
+
   return (
     <View style={{flex: 1}}>
       <View style={{flex: 1}}>
@@ -27,14 +37,19 @@ const Profile = () => {
         </View>
       </View>
 
-      <View>
-        <Button
-          name="Logout"
-          style={{marginVertical: 20}}
-          backgroundColor="#2596be"
-          color="white"
-        />
-      </View>
+      <TouchableOpacity
+        onPress={() => {
+          logout();
+        }}>
+        <View>
+          <Button
+            name="Logout"
+            style={{marginVertical: 20}}
+            backgroundColor="#2596be"
+            color="white"
+          />
+        </View>
+      </TouchableOpacity>
     </View>
   );
 };
