@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "889213330077",
+    "project_id": "zeroapp-66e9a",
+    "storage_bucket": "zeroapp-66e9a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:889213330077:android:e885ed90a515ce25beea74",
+        "android_client_info": {
+          "package_name": "com.buyer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZwhk1klSBQIdDgZ9sxTZvRbsV6YyDrRA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:889213330077:android:7d1498ef6d6ce52fbeea74",
+        "android_client_info": {
+          "package_name": "com.zeroapp_seller"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZwhk1klSBQIdDgZ9sxTZvRbsV6YyDrRA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
