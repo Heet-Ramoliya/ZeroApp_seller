@@ -13,7 +13,7 @@ const Button = ({name, backgroundColor, color}) => {
 
 const styles = StyleSheet.create({
   container: {
-    margin: 20,
+    margin: 10,
     padding: 15,
     borderRadius: 100,
   },

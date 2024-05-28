@@ -1,9 +1,16 @@
 import React from 'react';
-import {View, Text, TextInput, StyleSheet, Image} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import Button from '../Components/Button';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const AllAds = () => {
+const AllAds = ({navigation}) => {
   return (
     <View style={styles.container}>
       <View style={styles.mainContent}>
@@ -15,19 +22,22 @@ const AllAds = () => {
         <Text style={styles.subtitle}>
           Start selling your vehicles with your very first car ad
         </Text>
-        <View
-          style={{
-            flexDirection: 'row',
-            backgroundColor: '#20abeb',
-            justifyContent: 'center',
-            padding: 10,
-            borderRadius: 50,
-          }}>
-          <Icon name="add" size={30} color="white" />
-          <View style={{justifyContent: 'center', paddingRight: 8}}>
-            <Text style={{color: 'white'}}>Create new ad</Text>
+
+        <TouchableOpacity onPress={() => navigation.navigate('AddCars')}>
+          <View
+            style={{
+              flexDirection: 'row',
+              backgroundColor: '#20abeb',
+              justifyContent: 'center',
+              padding: 10,
+              borderRadius: 50,
+            }}>
+            <Icon name="add" size={30} color="white" />
+            <View style={{justifyContent: 'center', paddingRight: 8}}>
+              <Text style={{color: 'white'}}>Create new ad</Text>
+            </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
