@@ -15,6 +15,8 @@ import ImagePicker from 'react-native-image-crop-picker';
 import Icons from 'react-native-vector-icons/Entypo';
 import Textinput from '../Components/Textinput';
 import Button from '../Components/Button';
+import {db} from '../Firebase/Config';
+import {addDoc, collection} from 'firebase/firestore';
 
 const AddCars = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,6 +43,13 @@ const AddCars = () => {
   console.log('title ==> ', title);
   console.log('price ==> ', price);
   console.log('--------------------------------------------------------');
+
+  let currentDate = new Date();
+  let formattedDate = currentDate.toLocaleDateString('en-IN', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
   const groupedCars = carDatas.reduce((acc, car) => {
     if (!acc[car.brand]) {
@@ -279,6 +288,29 @@ const AddCars = () => {
       (img, imgIndex) => imgIndex !== index,
     );
     setSelectedImage(newImages);
+  };
+
+  const saveData = async () => {
+    addDoc(collection(db, 'CreateAD'), {
+      Brand: selectedBrand,
+      Year: selectedYear,
+      ModelName: selectedModel.model,
+      ModelImage: selectedModel.model_image,
+      Variant: selectedVariant,
+      Carcondition: selectedCondition,
+      Color: selectedColor,
+      RegistationCenter: selectedCenter,
+      CarPhotos: selectedImage,
+      Title: title,
+      Price: price,
+      postedDate: formattedDate,
+    })
+      .then(() => {
+        console.log('data insert successfully!');
+      })
+      .catch(error => {
+        console.log('error ==> ', error);
+      });
   };
 
   return (
@@ -587,7 +619,7 @@ const AddCars = () => {
               />
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={saveData}>
               <Button
                 name="Save as Draft"
                 backgroundColor="#d5eefb"
@@ -685,7 +717,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 5,
     borderRadius: 10,
-    marginHorizontal: 0,
   },
   conditionImage: {
     height: 50,

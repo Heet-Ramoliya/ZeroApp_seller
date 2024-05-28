@@ -3,6 +3,7 @@ import React from 'react';
 import ProfileList from '../Components/ProfileList';
 import Button from '../Components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Separator from '../Components/Separator';
 
 const Profile = ({navigation}) => {
   const logout = async () => {
@@ -33,7 +34,18 @@ const Profile = ({navigation}) => {
         </View>
 
         <View style={{marginTop: 40}}>
-          <ProfileList name="Change Password" />
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate('ChangePassword');
+            }}>
+            <ProfileList name="Change Password" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate('BusinessProfile');
+            }}>
+            <ProfileList name="Business Profile" />
+          </TouchableOpacity>
         </View>
       </View>
 

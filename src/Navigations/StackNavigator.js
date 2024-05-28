@@ -17,6 +17,7 @@ import SelectWorkingHours from '../Screens/SelectWorkingHours';
 import AllDone from '../Screens/AllDone';
 import SystemPermission from '../Screens/SystemPermission';
 import AddCars from '../Screens/AddCars';
+import ChangePassword from '../Screens/ChangePassword';
 
 const Stack = createNativeStackNavigator();
 
@@ -144,6 +145,14 @@ const StackNavigator = () => {
         <Stack.Screen
           name="AddCars"
           component={AddCars}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+          }}
+        />
+        <Stack.Screen
+          name="ChangePassword"
+          component={ChangePassword}
           options={{
             headerShown: true,
             headerTitleAlign: 'center',

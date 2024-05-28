@@ -48,7 +48,7 @@ const BottomTabNavigator = () => {
           } else if (route.name === 'Saved') {
             label = 'Saved';
           } else if (route.name === 'AddCars') {
-            label = 'AddCars';
+            label = 'AddAd';
           } else if (route.name === 'Inbox') {
             label = 'Inbox';
           } else if (route.name === 'Profile') {
