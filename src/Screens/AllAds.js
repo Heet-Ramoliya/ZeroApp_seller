@@ -8,73 +8,151 @@ import {
   FlatList,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {collection, getDocs} from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+} from 'firebase/firestore';
 import {db} from '../Firebase/Config';
 import Icons from 'react-native-vector-icons/Feather';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import {DashboardData} from '../Constant/DashboardData';
 
 const AllAds = ({navigation}) => {
   const [allData, setAllData] = useState([]);
+  const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
     getData();
+    getFavorites();
   }, []);
 
+  console.log(favorites);
+
   const getData = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'CreateAD'));
-      const Adlist = querySnapshot.docs.map(doc => ({...doc.data()}));
-      setAllData(Adlist);
-    } catch (e) {
-      console.error('Error fetching documents: ', e);
+    const docSnap = await getDocs(collection(db, 'CreateAD'));
+    let AdList = [];
+    docSnap.forEach(doc => {
+      AdList.push({...doc.data(), id: doc.id});
+    });
+    setAllData(AdList);
+  };
+
+  const getFavorites = async () => {
+    const favSnap = await getDocs(collection(db, 'Favorites_Seller'));
+    let favList = [];
+    favSnap.forEach(doc => {
+      favList.push(doc.data().id);
+    });
+    setFavorites(favList);
+  };
+
+  // const addFavourite = async item => {
+  //   await addDoc(collection(db, 'Favorites'), {item, id: item.id}).then(() => {
+  //     console.log('Successfully added data into favorite collection');
+  //     setFavorites([...favorites, item.id]);
+  //   });
+  // };
+
+  const addFavourite = async item => {
+    await addDoc(collection(db, 'Favorites_Seller'), item).then(() => {
+      console.log('Successfully added data into favorite collection');
+      setFavorites([...favorites, item.id]);
+    });
+  };
+
+  const removeFavourite = async id => {
+    const q = query(collection(db, 'Favorites_Seller'), where('id', '==', id));
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach(async docSnap => {
+      await deleteDoc(doc(db, 'Favorites_Seller', docSnap.id)).then(() => {
+        console.log('Successfully deleted data from favorite collection');
+        setFavorites(favorites.filter(favId => favId !== id));
+      });
+    });
+  };
+
+  const toggleFavourite = async item => {
+    if (favorites.includes(item.id)) {
+      await removeFavourite(item.id);
+    } else {
+      await addFavourite(item);
     }
   };
 
-  const renderItem = ({item}) => (
-    <View style={styles.card}>
-      <View style={styles.mainContainer}>
-        <View style={styles.imgContainer}>
-          <Image
-            source={{uri: item.ModelImage}}
-            style={styles.img}
-            resizeMode={'stretch'}
-          />
-        </View>
-        <View style={styles.infoContainer}>
-          <Text style={styles.title}>{item.Title}</Text>
-          <Text style={styles.price}>${item.Price}</Text>
-          <Text style={styles.date}>Posted on: {item.postedDate}</Text>
-          <View style={{flexDirection: 'row'}}>
-            <View
-              style={{
-                backgroundColor: '#00a0e9',
-                borderRadius: 10,
-                marginRight: 5,
-              }}>
-              <Text style={{color: 'white', padding: 4}}>Active</Text>
-            </View>
-            <View
-              style={{
-                backgroundColor: '#00a0e9',
-                borderRadius: 10,
-                marginRight: 5,
-              }}>
-              <Text style={{color: 'white', padding: 4}}>Promoted</Text>
-            </View>
-            <View style={{justifyContent: 'center', marginRight: 5}}>
-              <AntDesign name="calendar" size={20} color="#00a0e9" />
-            </View>
-            <View style={{justifyContent: 'center', marginRight: 5}}>
-              <Icons name="message-square" size={20} color="#00a0e9" />
+  const renderItem = ({item}) => {
+    const isFavorite = favorites.includes(item.id);
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.mainContainer}>
+          <View style={styles.imgContainer}>
+            <Image
+              source={{uri: item.ModelImage}}
+              style={styles.img}
+              resizeMode={'contain'}
+            />
+          </View>
+          <View style={styles.infoContainer}>
+            <Text style={styles.title}>{item.Title}</Text>
+            <Text style={styles.price}>${item.Price}</Text>
+            <Text style={styles.date}>Posted on: {item.postedDate}</Text>
+            <View style={{flexDirection: 'row'}}>
+              <View
+                style={{
+                  backgroundColor: '#00a0e9',
+                  borderRadius: 10,
+                  marginRight: 5,
+                }}>
+                <Text style={{color: 'white', padding: 4, fontSize: 12}}>
+                  Active
+                </Text>
+              </View>
+              <View
+                style={{
+                  backgroundColor: '#00a0e9',
+                  borderRadius: 10,
+                  marginRight: 5,
+                }}>
+                <Text style={{color: 'white', padding: 4, fontSize: 12}}>
+                  Promoted
+                </Text>
+              </View>
+              <View
+                style={{
+                  backgroundColor: '#00a0e9',
+                  borderRadius: 10,
+                  marginRight: 5,
+                }}>
+                <Text style={{color: 'white', padding: 4, fontSize: 12}}>
+                  Draft
+                </Text>
+              </View>
+              <View style={{justifyContent: 'center', marginRight: 5}}>
+                <AntDesign name="calendar" size={20} color="#00a0e9" />
+              </View>
+              <View style={{justifyContent: 'center', marginRight: 5}}>
+                <Icons name="message-square" size={20} color="#00a0e9" />
+              </View>
             </View>
           </View>
-        </View>
-        <View style={{justifyContent: 'center'}}>
-          <Icon name="favorite-border" size={24} color="black" />
+          <View style={{justifyContent: 'center'}}>
+            <TouchableOpacity onPress={() => toggleFavourite(item)}>
+              <Icon
+                name={isFavorite ? 'favorite' : 'favorite-outline'}
+                size={24}
+                color={isFavorite ? 'red' : 'black'}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -173,7 +251,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-
   title: {
     fontSize: 16,
     fontWeight: '500',

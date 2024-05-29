@@ -30,7 +30,6 @@ const Profile = ({navigation}) => {
 
         <View style={style.textContainer}>
           <Text style={style.text1}>Abdul Hussein</Text>
-          <Text style={style.text2}>+964 770 888 5777</Text>
         </View>
 
         <View style={{marginTop: 40}}>
@@ -88,10 +87,6 @@ const style = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
     fontSize: 20,
-  },
-  text2: {
-    padding: 2,
-    textAlign: 'center',
   },
 });
 

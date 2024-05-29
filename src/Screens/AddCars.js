@@ -291,26 +291,27 @@ const AddCars = () => {
   };
 
   const saveData = async () => {
-    addDoc(collection(db, 'CreateAD'), {
-      Brand: selectedBrand,
-      Year: selectedYear,
-      ModelName: selectedModel.model,
-      ModelImage: selectedModel.model_image,
-      Variant: selectedVariant,
-      Carcondition: selectedCondition,
-      Color: selectedColor,
-      RegistationCenter: selectedCenter,
-      CarPhotos: selectedImage,
-      Title: title,
-      Price: price,
-      postedDate: formattedDate,
-    })
-      .then(() => {
-        console.log('data insert successfully!');
-      })
-      .catch(error => {
-        console.log('error ==> ', error);
-      });
+    try {
+      const docData = {
+        Brand: selectedBrand,
+        Year: selectedYear,
+        ModelName: selectedModel.model,
+        ModelImage: selectedModel.model_image,
+        Variant: selectedVariant,
+        Carcondition: selectedCondition,
+        Color: selectedColor,
+        RegistationCenter: selectedCenter,
+        CarPhotos: selectedImage,
+        Title: title,
+        Price: price,
+        postedDate: formattedDate,
+      };
+
+      await addDoc(collection(db, 'CreateAD'), docData);
+      console.log('Data inserted successfully!');
+    } catch (error) {
+      console.error('Error ==> ', error);
+    }
   };
 
   return (
@@ -608,8 +609,7 @@ const AddCars = () => {
         selectedVariant &&
         selectedCondition &&
         selectedColor &&
-        selectedImage &&
-        title && (
+        selectedImage && (
           <>
             <TouchableOpacity>
               <Button
