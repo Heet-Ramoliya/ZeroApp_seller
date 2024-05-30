@@ -12,11 +12,17 @@ import ImagePicker from 'react-native-image-crop-picker';
 import Button from '../Components/Button';
 import Progressbar from '../Components/Progressbar';
 import Textinput from '../Components/Textinput';
+import {addDoc, collection} from 'firebase/firestore';
+import {db} from '../Firebase/Config';
 
 const BusinessInfo = ({navigation}) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [name, setName] = useState(null);
   const [contactNumber, setContactNumber] = useState(null);
+
+  console.log('name ==> ', name);
+  console.log('contactNumber ==> ', contactNumber);
+  console.log('selectedImage ==> ', selectedImage);
 
   const uploadLogo = () => {
     ImagePicker.openPicker({
@@ -39,6 +45,22 @@ const BusinessInfo = ({navigation}) => {
   const handleImagePress = () => {
     if (!selectedImage) {
       uploadLogo();
+    }
+  };
+
+  const addBusinessInfo = async () => {
+    try {
+      const docData = {
+        BusinessName: name,
+        ContactNumber: contactNumber,
+        BusinessLogo: selectedImage,
+      };
+      await addDoc(collection(db, 'Seller_BusinessInfo'), docData);
+      console.log('BusinessInfo Data inserted successfully!');
+    } catch {
+      error => {
+        console.error('Error ==> ', error);
+      };
     }
   };
 
@@ -122,7 +144,11 @@ const BusinessInfo = ({navigation}) => {
         {/* Button component */}
         <TouchableOpacity
           onPress={() => {
-            navigation.navigate('BusinessDescription');
+            addBusinessInfo()
+              .then(navigation.navigate('BusinessDescription'))
+              .catch(e => {
+                console.log('error ==> ', e);
+              });
           }}>
           <View style={{marginTop: 25}}>
             <View>

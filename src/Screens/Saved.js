@@ -3,7 +3,6 @@ import {
   TextInput,
   TouchableOpacity,
   Text,
-  ScrollView,
   Image,
   StyleSheet,
   FlatList,
@@ -23,20 +22,61 @@ import {
   where,
 } from 'firebase/firestore';
 import {db} from '../Firebase/Config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useFocusEffect} from '@react-navigation/native';
 
 const Saved = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userId, setUserId] = useState('');
 
-  useEffect(() => {
-    getFavorites();
-  }, []);
+  useEffect(() => {}, [favorites, userId]);
 
-  const getFavorites = async () => {
+  useFocusEffect(
+    React.useCallback(() => {
+      getFavorites(userId);
+      getUserIdFromStorage();
+    }, [favorites]),
+  );
+
+  const getUserIdFromStorage = async () => {
     try {
-      const docSnap = await getDocs(collection(db, 'Favorites_Seller'));
+      const id = await AsyncStorage.getItem('UserId');
+      if (id !== null) {
+        setUserId(id);
+      }
+    } catch (error) {
+      console.error('Error retrieving userId from AsyncStorage:', error);
+    }
+  };
+
+  // const getFavorites = async () => {
+  //   try {
+  //     const docSnap = await getDocs(
+  //       collection(db, 'Favorites_Seller'),
+  //       where('UserId', '==', userId),
+  //     );
+  //     let FavoritesList = [];
+  //     docSnap.forEach(doc => {
+  //       FavoritesList.push({...doc.data()});
+  //     });
+  //     setFavorites(FavoritesList);
+  //     setLoading(false);
+  //   } catch (error) {
+  //     setError(error.message);
+  //     setLoading(false);
+  //   }
+  // };
+
+  const getFavorites = async userId => {
+    try {
+      const q = query(
+        collection(db, 'Favorites_Seller'),
+        where('UserId', '==', userId),
+      );
+      const docSnap = await getDocs(q);
       let FavoritesList = [];
       docSnap.forEach(doc => {
         FavoritesList.push({...doc.data()});
@@ -50,7 +90,11 @@ const Saved = () => {
   };
 
   const removeFavourite = async id => {
-    const q = query(collection(db, 'Favorites_Seller'), where('id', '==', id));
+    const q = query(
+      collection(db, 'Favorites_Seller'),
+      where('UserId', '==', userId),
+      where('id', '==', id),
+    );
     const querySnapshot = await getDocs(q);
     querySnapshot.forEach(async docSnap => {
       await deleteDoc(doc(db, 'Favorites_Seller', docSnap.id)).then(() => {

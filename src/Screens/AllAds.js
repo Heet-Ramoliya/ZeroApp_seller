@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
@@ -20,30 +21,65 @@ import {
 import {db} from '../Firebase/Config';
 import Icons from 'react-native-vector-icons/Feather';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {DashboardData} from '../Constant/DashboardData';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useFocusEffect} from '@react-navigation/native';
 
 const AllAds = ({navigation}) => {
   const [allData, setAllData] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [userId, setUserId] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getData();
-    getFavorites();
+    getUserIdFromStorage();
   }, []);
 
-  console.log(favorites);
+  useEffect(() => {
+    if (userId) {
+      getData();
+      getFavorites();
+    }
+  }, [userId]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      getUserIdFromStorage();
+    }, []),
+  );
+
+  const getUserIdFromStorage = async () => {
+    try {
+      const id = await AsyncStorage.getItem('UserId');
+      if (id !== null) {
+        setUserId(id);
+      }
+    } catch (error) {
+      console.error('Error retrieving userId from AsyncStorage:', error);
+    }
+  };
 
   const getData = async () => {
-    const docSnap = await getDocs(collection(db, 'CreateAD'));
-    let AdList = [];
-    docSnap.forEach(doc => {
-      AdList.push({...doc.data(), id: doc.id});
-    });
-    setAllData(AdList);
+    try {
+      const docSnap = await getDocs(collection(db, 'CreateAD'));
+      let AdList = [];
+      docSnap.forEach(doc => {
+        AdList.push({...doc.data(), id: doc.id});
+      });
+      setAllData(AdList);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getFavorites = async () => {
-    const favSnap = await getDocs(collection(db, 'Favorites_Seller'));
+    if (!userId) return;
+    const q = query(
+      collection(db, 'Favorites_Seller'),
+      where('UserId', '==', userId),
+    );
+    const favSnap = await getDocs(q);
     let favList = [];
     favSnap.forEach(doc => {
       favList.push(doc.data().id);
@@ -51,22 +87,22 @@ const AllAds = ({navigation}) => {
     setFavorites(favList);
   };
 
-  // const addFavourite = async item => {
-  //   await addDoc(collection(db, 'Favorites'), {item, id: item.id}).then(() => {
-  //     console.log('Successfully added data into favorite collection');
-  //     setFavorites([...favorites, item.id]);
-  //   });
-  // };
-
   const addFavourite = async item => {
-    await addDoc(collection(db, 'Favorites_Seller'), item).then(() => {
+    await addDoc(collection(db, 'Favorites_Seller'), {
+      ...item,
+      UserId: userId,
+    }).then(() => {
       console.log('Successfully added data into favorite collection');
       setFavorites([...favorites, item.id]);
     });
   };
 
   const removeFavourite = async id => {
-    const q = query(collection(db, 'Favorites_Seller'), where('id', '==', id));
+    const q = query(
+      collection(db, 'Favorites_Seller'),
+      where('UserId', '==', userId),
+      where('id', '==', id),
+    );
     const querySnapshot = await getDocs(q);
     querySnapshot.forEach(async docSnap => {
       await deleteDoc(doc(db, 'Favorites_Seller', docSnap.id)).then(() => {
@@ -156,7 +192,9 @@ const AllAds = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-      {allData.length === 0 ? (
+      {loading ? (
+        <ActivityIndicator size="large" color="#00a0e9" style={styles.loader} />
+      ) : allData.length === 0 ? (
         <View style={styles.mainContent}>
           <Image
             source={require('../../utils/Images/AllAd.jpg')}
@@ -269,6 +307,11 @@ const styles = StyleSheet.create({
   listContent: {
     flexGrow: 1,
     paddingBottom: 20,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

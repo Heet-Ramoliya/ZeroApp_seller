@@ -7,7 +7,7 @@ import {
   ScrollView,
   ToastAndroid,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Textinput from '../Components/Textinput';
 import Button from '../Components/Button';
 import auth from '@react-native-firebase/auth';
@@ -28,8 +28,13 @@ const Login = ({navigation}) => {
 
     auth()
       .signInWithEmailAndPassword(email, password)
-      .then(() => {
+      .then(res => {
+        const id = res.user.uid;
+        console.log('id ==> ', id);
         ToastAndroid.show('User signed in successfully!', ToastAndroid.SHORT);
+        AsyncStorage.setItem('UserId', id).then(
+          console.log('Successfully set UserId in AsyncStorage'),
+        );
         AsyncStorage.setItem('sessionToken', JSON.stringify(true));
         navigation.navigate('BottomTabNavigator');
       })
@@ -93,7 +98,7 @@ const Login = ({navigation}) => {
               </View>
             </View>
           </View>
-          <View style={{}}>
+          <View>
             <TouchableOpacity onPress={LoginWithEmail}>
               <Button name="Sign in" backgroundColor="#01a0e9" color="white" />
             </TouchableOpacity>

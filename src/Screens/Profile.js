@@ -1,18 +1,42 @@
 import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import ProfileList from '../Components/ProfileList';
 import Button from '../Components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Separator from '../Components/Separator';
+import {collection, getDocs} from 'firebase/firestore';
+import {db} from '../Firebase/Config';
 
 const Profile = ({navigation}) => {
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem('sessionToken');
-      console.log('Successfully removed sessionToken!');
-      navigation.navigate('Login');
+      await AsyncStorage.removeItem('sessionToken').then(() => {
+        console.log('Successfully removed sessionToken!');
+      });
+      await AsyncStorage.removeItem('UserId').then(() => {
+        console.log('Successfully removed UserId!');
+      });
+      navigation.replace('Login');
     } catch (error) {
       console.error('Error in removing sessionToken: ', error);
+    }
+  };
+
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    getProfileData();
+  }, []);
+
+  const getProfileData = async () => {
+    try {
+      const docSnap = await getDocs(collection(db, 'Seller_BusinessInfo'));
+      let list = [];
+      docSnap.forEach(doc => {
+        list.push({...doc.data()});
+      });
+      setData(list);
+    } catch (error) {
+      console.error('Error fetching profile data: ', error);
     }
   };
 
@@ -20,16 +44,29 @@ const Profile = ({navigation}) => {
     <View style={{flex: 1}}>
       <View style={{flex: 1}}>
         <View style={style.imgContainer}>
-          <Image
-            source={{
-              uri: 'https://i.pinimg.com/1200x/89/90/48/899048ab0cc455154006fdb9676964b3.jpg',
-            }}
-            style={style.img}
-          />
+          {data.length > 0 ? (
+            <Image
+              source={{
+                uri: data[0].BusinessLogo,
+              }}
+              style={style.img}
+            />
+          ) : (
+            <Image
+              source={{
+                uri: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
+              }}
+              style={style.img}
+            />
+          )}
         </View>
 
         <View style={style.textContainer}>
-          <Text style={style.text1}>Abdul Hussein</Text>
+          {data.length > 0 ? (
+            <Text style={style.text1}>{data[0].BusinessName}</Text>
+          ) : (
+            <Text style={style.text1}>Loading...</Text>
+          )}
         </View>
 
         <View style={{marginTop: 40}}>
