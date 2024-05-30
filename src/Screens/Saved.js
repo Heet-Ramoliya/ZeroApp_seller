@@ -32,13 +32,13 @@ const Saved = () => {
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState('');
 
-  useEffect(() => {}, [favorites, userId]);
+  useEffect(() => {}, [userId]);
 
   useFocusEffect(
     React.useCallback(() => {
       getFavorites(userId);
       getUserIdFromStorage();
-    }, [favorites]),
+    }, []),
   );
 
   const getUserIdFromStorage = async () => {

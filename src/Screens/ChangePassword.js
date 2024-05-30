@@ -1,3 +1,4 @@
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -5,15 +6,81 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
-import React, {useState} from 'react';
 import Textinput from '../Components/Textinput';
 import Button from '../Components/Button';
+import auth from '@react-native-firebase/auth';
 
-const ChangePassword = () => {
+const ChangePassword = ({navigation}) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  const reauthenticate = currentPassword => {
+    const user = auth().currentUser;
+    const cred = auth.EmailAuthProvider.credential(user.email, currentPassword);
+    return user.reauthenticateWithCredential(cred);
+  };
+
+  const onChangePasswordPress = () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Alert.alert('Error', 'Please fill in all fields.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', 'New passwords do not match.');
+      return;
+    }
+
+    if (newPassword === currentPassword) {
+      Alert.alert(
+        'Error',
+        'New password must be different from the current password.',
+      );
+      return;
+    }
+
+    reauthenticate(currentPassword)
+      .then(() => {
+        const user = auth().currentUser;
+        user
+          .updatePassword(newPassword)
+          .then(() => {
+            Alert.alert('Success', 'Password changed successfully!', [
+              {
+                text: 'OK',
+                onPress: () => {
+                  navigation.navigate('Login');
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                },
+              },
+            ]);
+          })
+          .catch(error => {
+            switch (error.code) {
+              case 'auth/weak-password':
+                Alert.alert(
+                  'Error',
+                  'The new password is too weak. Please choose a stronger password.',
+                );
+                break;
+              case 'auth/wrong-password':
+                Alert.alert('Error', 'The current password is incorrect.');
+                break;
+              default:
+                Alert.alert('Error', error.message);
+                break;
+            }
+          });
+      })
+      .catch(error => {
+        Alert.alert('Error', error.message);
+      });
+  };
 
   return (
     <KeyboardAvoidingView
@@ -33,7 +100,7 @@ const ChangePassword = () => {
                 <Textinput
                   value={currentPassword}
                   onChangeText={txt => setCurrentPassword(txt)}
-                  secureTextEntry={false}
+                  secureTextEntry={true}
                   placeholder="Enter current password"
                 />
               </View>
@@ -46,7 +113,7 @@ const ChangePassword = () => {
                 <Textinput
                   value={newPassword}
                   onChangeText={txt => setNewPassword(txt)}
-                  secureTextEntry={false}
+                  secureTextEntry={true}
                   placeholder="Enter new password"
                 />
               </View>
@@ -59,14 +126,14 @@ const ChangePassword = () => {
                 <Textinput
                   value={confirmPassword}
                   onChangeText={txt => setConfirmPassword(txt)}
-                  secureTextEntry={false}
-                  placeholder="Enter Confirm password"
+                  secureTextEntry={true}
+                  placeholder="Enter confirm password"
                 />
               </View>
             </View>
           </View>
           <View>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={onChangePasswordPress}>
               <Button name="Complete" backgroundColor="#01a0e9" color="white" />
             </TouchableOpacity>
           </View>
