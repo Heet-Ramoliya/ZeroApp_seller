@@ -11,6 +11,7 @@ import {
 import Textinput from '../Components/Textinput';
 import Button from '../Components/Button';
 import auth from '@react-native-firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ChangePassword = ({navigation}) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -52,7 +53,13 @@ const ChangePassword = ({navigation}) => {
               {
                 text: 'OK',
                 onPress: () => {
-                  navigation.navigate('Login');
+                  AsyncStorage.removeItem('sessionToken').then(() => {
+                    console.log('Successfully removed sessionToken!');
+                  });
+                  AsyncStorage.removeItem('UserId').then(() => {
+                    console.log('Successfully removed UserId!');
+                  });
+                  navigation.replace('SplashScreen');
                   setCurrentPassword('');
                   setNewPassword('');
                   setConfirmPassword('');

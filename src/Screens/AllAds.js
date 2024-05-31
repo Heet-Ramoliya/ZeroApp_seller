@@ -11,10 +11,9 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
   collection,
-  getDocs,
+  onSnapshot,
   addDoc,
   deleteDoc,
-  doc,
   query,
   where,
 } from 'firebase/firestore';
@@ -35,16 +34,30 @@ const AllAds = ({navigation}) => {
   }, []);
 
   useEffect(() => {
+    let unsubscribeAds;
+    let unsubscribeFavorites;
+
     if (userId) {
-      getData();
-      getFavorites();
+      unsubscribeAds = getData();
+      unsubscribeFavorites = getFavorites();
     }
+
+    return () => {
+      if (unsubscribeAds) unsubscribeAds();
+      if (unsubscribeFavorites) unsubscribeFavorites();
+    };
   }, [userId]);
 
   useFocusEffect(
     React.useCallback(() => {
-      getUserIdFromStorage();
-    }, []),
+      const fetchUserId = async () => {
+        const id = await AsyncStorage.getItem('UserId');
+        if (id !== null && id !== userId) {
+          setUserId(id);
+        }
+      };
+      fetchUserId();
+    }, [userId]),
   );
 
   const getUserIdFromStorage = async () => {
@@ -58,33 +71,44 @@ const AllAds = ({navigation}) => {
     }
   };
 
-  const getData = async () => {
-    try {
-      const docSnap = await getDocs(collection(db, 'CreateAD'));
-      let AdList = [];
-      docSnap.forEach(doc => {
-        AdList.push({...doc.data(), id: doc.id});
-      });
-      setAllData(AdList);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
+  const getData = () => {
+    const q = collection(db, 'CreateAD');
+    return onSnapshot(
+      q,
+      snapshot => {
+        let AdList = [];
+        snapshot.forEach(doc => {
+          AdList.push({...doc.data(), id: doc.id});
+        });
+        setAllData(AdList);
+        setLoading(false);
+      },
+      error => {
+        console.error('Error fetching data:', error);
+        setLoading(false);
+      },
+    );
   };
 
-  const getFavorites = async () => {
+  const getFavorites = () => {
     if (!userId) return;
     const q = query(
       collection(db, 'Favorites_Seller'),
       where('UserId', '==', userId),
     );
-    const favSnap = await getDocs(q);
-    let favList = [];
-    favSnap.forEach(doc => {
-      favList.push(doc.data().id);
-    });
-    setFavorites(favList);
+    return onSnapshot(
+      q,
+      snapshot => {
+        let favList = [];
+        snapshot.forEach(doc => {
+          favList.push(doc.data().id);
+        });
+        setFavorites(favList);
+      },
+      error => {
+        console.error('Error fetching favorites:', error);
+      },
+    );
   };
 
   const addFavourite = async item => {
@@ -93,7 +117,6 @@ const AllAds = ({navigation}) => {
       UserId: userId,
     }).then(() => {
       console.log('Successfully added data into favorite collection');
-      setFavorites([...favorites, item.id]);
     });
   };
 
@@ -107,7 +130,6 @@ const AllAds = ({navigation}) => {
     querySnapshot.forEach(async docSnap => {
       await deleteDoc(doc(db, 'Favorites_Seller', docSnap.id)).then(() => {
         console.log('Successfully deleted data from favorite collection');
-        setFavorites(favorites.filter(favId => favId !== id));
       });
     });
   };
