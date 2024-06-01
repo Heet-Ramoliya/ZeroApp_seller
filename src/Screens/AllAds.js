@@ -16,6 +16,8 @@ import {
   deleteDoc,
   query,
   where,
+  getDocs,
+  doc,
 } from 'firebase/firestore';
 import {db} from '../Firebase/Config';
 import Icons from 'react-native-vector-icons/Feather';

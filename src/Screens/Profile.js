@@ -3,40 +3,64 @@ import React, {useEffect, useState} from 'react';
 import ProfileList from '../Components/ProfileList';
 import Button from '../Components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {collection, getDocs} from 'firebase/firestore';
+import {collection, getDocs, query, where} from 'firebase/firestore';
 import {db} from '../Firebase/Config';
 
 const Profile = ({navigation}) => {
-  const logout = async () => {
+  const [data, setData] = useState([]);
+  const [userId, setUserId] = useState('');
+
+  const getUserIdFromStorage = async () => {
     try {
-      await AsyncStorage.removeItem('sessionToken').then(() => {
-        console.log('Successfully removed sessionToken!');
-      });
-      await AsyncStorage.removeItem('UserId').then(() => {
-        console.log('Successfully removed UserId!');
-      });
-      navigation.replace('Login');
+      const id = await AsyncStorage.getItem('UserId');
+      if (id !== null) {
+        setUserId(id);
+        console.log('UserId retrieved from AsyncStorage: ', id);
+      } else {
+        console.log('No UserId found in AsyncStorage');
+      }
     } catch (error) {
-      console.error('Error in removing sessionToken: ', error);
+      console.error('Error retrieving userId from AsyncStorage:', error);
     }
   };
 
-  const [data, setData] = useState([]);
-
   useEffect(() => {
-    getProfileData();
+    getUserIdFromStorage();
   }, []);
 
-  const getProfileData = async () => {
+  useEffect(() => {
+    if (userId) {
+      getProfileData(userId);
+    }
+  }, [userId]);
+
+  const getProfileData = async userId => {
     try {
-      const docSnap = await getDocs(collection(db, 'Seller_BusinessInfo'));
+      console.log('Fetching profile data for userId: ', userId);
+      const q = query(
+        collection(db, 'Seller_BusinessInfo'),
+        where('UserId', '==', userId),
+      );
+      const docSnap = await getDocs(q);
       let list = [];
       docSnap.forEach(doc => {
         list.push({...doc.data()});
       });
       setData(list);
+      console.log('Profile data fetched: ', list);
     } catch (error) {
       console.error('Error fetching profile data: ', error);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await AsyncStorage.removeItem('sessionToken');
+      await AsyncStorage.removeItem('UserId');
+      console.log('Successfully removed sessionToken and UserId!');
+      navigation.replace('Login');
+    } catch (error) {
+      console.error('Error in removing sessionToken: ', error);
     }
   };
 
@@ -45,12 +69,7 @@ const Profile = ({navigation}) => {
       <View style={{flex: 1}}>
         <View style={style.imgContainer}>
           {data.length > 0 ? (
-            <Image
-              source={{
-                uri: data[0].BusinessLogo,
-              }}
-              style={style.img}
-            />
+            <Image source={{uri: data[0].BusinessLogo}} style={style.img} />
           ) : (
             <Image
               source={{
@@ -71,24 +90,19 @@ const Profile = ({navigation}) => {
 
         <View style={{marginTop: 40}}>
           <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('ChangePassword');
-            }}>
+            onPress={() => navigation.navigate('ChangePassword')}>
             <ProfileList name="Change Password" />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('BusinessProfile');
-            }}>
+            onPress={() =>
+              navigation.navigate('BusinessInfo', {mode: 'update'})
+            }>
             <ProfileList name="Business Profile" />
           </TouchableOpacity>
         </View>
       </View>
 
-      <TouchableOpacity
-        onPress={() => {
-          logout();
-        }}>
+      <TouchableOpacity onPress={logout}>
         <View>
           <Button
             name="Logout"

@@ -28,7 +28,7 @@ const Register = ({navigation}) => {
     auth()
       .createUserWithEmailAndPassword(email, password)
       .then(() => {
-        navigation.navigate('BusinessProfile');
+        navigation.navigate('BusinessProfile', {mode: 'register'});
         ToastAndroid.show('User signed up successfully', ToastAndroid.SHORT);
       })
       .catch(error => {

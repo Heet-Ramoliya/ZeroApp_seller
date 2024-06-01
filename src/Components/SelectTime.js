@@ -1,17 +1,38 @@
 import {View, Text, StyleSheet, Switch, TouchableOpacity} from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const SelectTime = ({dayName}) => {
-  const [isEnabled, setIsEnabled] = useState(false);
+const SelectTime = ({dayName, logTime, start, end}) => {
+  const [isEnabled, setIsEnabled] = useState(
+    start !== 'closed' && end !== 'closed',
+  );
   const [isStartTimePickerVisible, setIsStartTimePickerVisible] =
     useState(false);
   const [isEndTimePickerVisible, setIsEndTimePickerVisible] = useState(false);
-  const [selectStartTime, setSelectStartTime] = useState('Start');
-  const [selectEndTime, setSelectEndTime] = useState('Stop');
+  const [selectStartTime, setSelectStartTime] = useState(
+    start === 'closed' ? '' : start,
+  );
+  const [selectEndTime, setSelectEndTime] = useState(
+    end === 'closed' ? '' : end,
+  );
 
-  const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+  useEffect(() => {
+    if (!isEnabled) {
+      logTime(dayName, 'closed', 'closed');
+    } else if (isEnabled && selectStartTime && selectEndTime) {
+      logTime(dayName, selectStartTime, selectEndTime);
+    }
+  }, [isEnabled, selectStartTime, selectEndTime]);
+
+  const toggleSwitch = () => {
+    setIsEnabled(previousState => !previousState);
+    if (!isEnabled) {
+      logTime(dayName, 'closed', 'closed');
+    } else {
+      logTime(dayName, selectStartTime, selectEndTime);
+    }
+  };
 
   const showStartTimePicker = () => {
     setIsStartTimePickerVisible(true);
@@ -27,13 +48,11 @@ const SelectTime = ({dayName}) => {
   };
 
   const handleStartTimeConfirm = time => {
-    console.log('A start time has been picked: ', time);
     setSelectStartTime(formatTime(time));
     hideTimePicker();
   };
 
   const handleEndTimeConfirm = time => {
-    console.log('An end time has been picked: ', time);
     setSelectEndTime(formatTime(time));
     hideTimePicker();
   };
@@ -66,22 +85,21 @@ const SelectTime = ({dayName}) => {
               <View style={{paddingTop: 5, paddingBottom: 8}}>
                 <Text style={{fontWeight: '500'}}>{dayName}</Text>
               </View>
-
               <View
                 style={{flexDirection: 'row', marginBottom: 8, paddingTop: 5}}>
                 <TouchableOpacity onPress={showStartTimePicker}>
                   <View style={styles.time_container}>
-                    <Text style={{padding: 8}}>{selectStartTime}</Text>
+                    <Text style={{padding: 8}}>
+                      {selectStartTime || 'Start'}
+                    </Text>
                   </View>
                 </TouchableOpacity>
-
                 <View style={{marginRight: 8}}>
                   <Text style={{padding: 8}}>to</Text>
                 </View>
-
                 <TouchableOpacity onPress={showEndTimePicker}>
                   <View style={styles.time_container}>
-                    <Text style={{padding: 8}}>{selectEndTime}</Text>
+                    <Text style={{padding: 8}}>{selectEndTime || 'Stop'}</Text>
                   </View>
                 </TouchableOpacity>
               </View>

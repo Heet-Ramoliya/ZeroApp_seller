@@ -1,9 +1,12 @@
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import Button from '../Components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import auth from '@react-native-firebase/auth';
 
-const AllDone = ({navigation}) => {
+const AllDone = ({navigation, route}) => {
+  const {mode} = route.params;
+  console.log('mode ==> ', mode);
   return (
     <>
       <View style={style.main_Container}>
@@ -32,8 +35,12 @@ const AllDone = ({navigation}) => {
         {/* Button component */}
         <TouchableOpacity
           onPress={() => {
-            AsyncStorage.setItem('sessionToken', JSON.stringify(true));
-            navigation.navigate('SystemPermission');
+            if (mode == 'update') {
+              navigation.navigate('BottomTabNavigator');
+            } else {
+              AsyncStorage.setItem('sessionToken', JSON.stringify(true));
+              navigation.navigate('SystemPermission');
+            }
           }}>
           <View>
             <Button name="Confirm" backgroundColor="#01a0e9" color="white" />

@@ -3,7 +3,9 @@ import React from 'react';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Button from '../Components/Button';
 
-const BusinessProfile = ({navigation}) => {
+const BusinessProfile = ({navigation, route}) => {
+  const {mode} = route.params;
+  console.log('mode when  ==> ', mode);
   return (
     <>
       <View style={style.main_Container}>
@@ -29,7 +31,7 @@ const BusinessProfile = ({navigation}) => {
         {/* Button component */}
         <TouchableOpacity
           onPress={() => {
-            navigation.navigate('BusinessInfo');
+            navigation.navigate('BusinessInfo', {mode: mode});
           }}>
           <View>
             <Button

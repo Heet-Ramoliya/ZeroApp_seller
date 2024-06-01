@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -12,17 +12,112 @@ import ImagePicker from 'react-native-image-crop-picker';
 import Button from '../Components/Button';
 import Progressbar from '../Components/Progressbar';
 import Textinput from '../Components/Textinput';
-import {addDoc, collection} from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  doc,
+  updateDoc,
+  getDocs,
+  query,
+  where,
+} from 'firebase/firestore';
 import {db} from '../Firebase/Config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import auth from '@react-native-firebase/auth';
 
-const BusinessInfo = ({navigation}) => {
+const BusinessInfo = ({navigation, route}) => {
+  const {mode} = route.params;
   const [selectedImage, setSelectedImage] = useState(null);
-  const [name, setName] = useState(null);
-  const [contactNumber, setContactNumber] = useState(null);
+  const [name, setName] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [userId, setUserId] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  console.log('name ==> ', name);
-  console.log('contactNumber ==> ', contactNumber);
-  console.log('selectedImage ==> ', selectedImage);
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        const currentUser = auth().currentUser;
+        if (currentUser) {
+          const id = currentUser.uid;
+          setUserId(id);
+          await AsyncStorage.setItem('UserId', id);
+          await AsyncStorage.setItem('sessionToken', JSON.stringify(true));
+          if (mode === 'update') {
+            await fetchBusinessInfo(id);
+          } else {
+            setLoading(false);
+          }
+        } else {
+          console.log('No user is signed in.');
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+        setLoading(false);
+      }
+    };
+    getCurrentUser();
+  }, []);
+
+  const fetchBusinessInfo = async userId => {
+    try {
+      const q = query(
+        collection(db, 'Seller_BusinessInfo'),
+        where('UserId', '==', userId),
+      );
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const businessInfo = querySnapshot.docs[0].data();
+        setName(businessInfo.BusinessName);
+        setContactNumber(businessInfo.ContactNumber);
+        setSelectedImage(businessInfo.BusinessLogo);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching business info:', error);
+      setLoading(false);
+    }
+  };
+
+  const checkStatus = async () => {
+    if (mode === 'update') {
+      try {
+        const q = query(
+          collection(db, 'Seller_BusinessInfo'),
+          where('UserId', '==', userId),
+        );
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const docRef = querySnapshot.docs[0].ref;
+          await updateDoc(docRef, {
+            BusinessName: name,
+            ContactNumber: contactNumber,
+            BusinessLogo: selectedImage,
+          });
+          console.log('BusinessInfo Data updated successfully!');
+          navigation.navigate('BusinessDescription', {mode: mode});
+        } else {
+          console.log('No matching document found');
+        }
+      } catch (error) {
+        console.error('Error updating document:', error);
+      }
+    } else {
+      try {
+        const docData = {
+          BusinessName: name,
+          ContactNumber: contactNumber,
+          BusinessLogo: selectedImage,
+          UserId: userId,
+        };
+        await addDoc(collection(db, 'Seller_BusinessInfo'), docData);
+        console.log('BusinessInfo Data inserted successfully!');
+        navigation.navigate('BusinessDescription', {mode: mode});
+      } catch (error) {
+        console.error('Error adding document:', error);
+      }
+    }
+  };
 
   const uploadLogo = () => {
     ImagePicker.openPicker({
@@ -48,31 +143,21 @@ const BusinessInfo = ({navigation}) => {
     }
   };
 
-  const addBusinessInfo = async () => {
-    try {
-      const docData = {
-        BusinessName: name,
-        ContactNumber: contactNumber,
-        BusinessLogo: selectedImage,
-      };
-      await addDoc(collection(db, 'Seller_BusinessInfo'), docData);
-      console.log('BusinessInfo Data inserted successfully!');
-    } catch {
-      error => {
-        console.error('Error ==> ', error);
-      };
-    }
-  };
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView>
       <View>
-        {/* progress Bar */}
         <View style={{marginTop: 25, marginHorizontal: 20}}>
           <Progressbar value={0.25} />
         </View>
         <View style={{marginHorizontal: 35}}>
-          {/* heading and description */}
           <View style={styles.text_Container}>
             <Text style={styles.heading}>
               Your business name, contact, and logo
@@ -82,7 +167,6 @@ const BusinessInfo = ({navigation}) => {
               profile.
             </Text>
           </View>
-          {/* Text input component */}
           <View style={styles.textinput_container}>
             <View style={{marginBottom: 10}}>
               <Text style={styles.input_header}>Business name</Text>
@@ -101,7 +185,6 @@ const BusinessInfo = ({navigation}) => {
               onChangeText={text => setContactNumber(text)}
             />
           </View>
-          {/* image picker */}
           <View>
             <View style={{marginBottom: 10}}>
               <Text style={styles.input_header}>Business logo</Text>
@@ -141,15 +224,7 @@ const BusinessInfo = ({navigation}) => {
             </View>
           </View>
         </View>
-        {/* Button component */}
-        <TouchableOpacity
-          onPress={() => {
-            addBusinessInfo()
-              .then(navigation.navigate('BusinessDescription'))
-              .catch(e => {
-                console.log('error ==> ', e);
-              });
-          }}>
+        <TouchableOpacity onPress={checkStatus}>
           <View style={{marginTop: 25}}>
             <View>
               <Button name="Continue" backgroundColor="#01a0e9" color="white" />
@@ -213,6 +288,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     borderRadius: 12,
     padding: 5,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
