@@ -15,7 +15,6 @@ const Profile = ({navigation}) => {
       const id = await AsyncStorage.getItem('UserId');
       if (id !== null) {
         setUserId(id);
-        console.log('UserId retrieved from AsyncStorage: ', id);
       } else {
         console.log('No UserId found in AsyncStorage');
       }
@@ -36,7 +35,6 @@ const Profile = ({navigation}) => {
 
   const getProfileData = async userId => {
     try {
-      console.log('Fetching profile data for userId: ', userId);
       const q = query(
         collection(db, 'Seller_BusinessInfo'),
         where('UserId', '==', userId),
@@ -47,7 +45,6 @@ const Profile = ({navigation}) => {
         list.push({...doc.data()});
       });
       setData(list);
-      console.log('Profile data fetched: ', list);
     } catch (error) {
       console.error('Error fetching profile data: ', error);
     }

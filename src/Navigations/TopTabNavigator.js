@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Dimensions, TextInput} from 'react-native';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {
@@ -16,6 +16,15 @@ import Drafts from '../Screens/Drafts';
 import Inactive from '../Screens/Inactive';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Icons from 'react-native-vector-icons/FontAwesome6';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  collection,
+  getDocs,
+  onSnapshot,
+  query,
+  where,
+} from 'firebase/firestore';
+import {db} from '../Firebase/Config';
 
 const {height} = Dimensions.get('window');
 
@@ -161,22 +170,110 @@ const styles = StyleSheet.create({
 });
 
 export const TopTabNavigator = () => {
+  const [userId, setUserId] = useState('');
+  const [data, setData] = useState('');
+  const [activeData, setActiveData] = useState('');
+  const [draftData, setDraftData] = useState([]);
+
+  useEffect(() => {
+    getUserIdFromStorage();
+    getData();
+  }, []);
+
+  const getUserIdFromStorage = async () => {
+    try {
+      const id = await AsyncStorage.getItem('UserId');
+      if (id !== null) {
+        setUserId(id);
+      }
+    } catch (error) {
+      console.error('Error retrieving userId from AsyncStorage:', error);
+    }
+  };
+
+  // All Ads
+  const getData = async () => {
+    try {
+      const q = query(collection(db, 'CreateAD'));
+      const docSnap = await getDocs(q);
+      let list = [];
+      docSnap.forEach(doc => {
+        list.push({...doc.data()});
+      });
+      setData(list);
+    } catch (error) {
+      console.error('Error fetching profile data: ', error);
+    }
+  };
+
+  // Active data
+  useEffect(() => {
+    if (userId) {
+      const q = query(
+        collection(db, 'CreateAD'),
+        where('UserId', '==', userId),
+      );
+
+      const unsubscribe = onSnapshot(
+        q,
+        querySnapshot => {
+          const List = [];
+          querySnapshot.forEach(doc => {
+            List.push({...doc.data()});
+          });
+          setActiveData(List);
+        },
+        error => {
+          console.error('Error listening for changes:', error);
+        },
+      );
+
+      return () => unsubscribe();
+    }
+  }, [userId]);
+
+  // Draft data
+  useEffect(() => {
+    if (userId) {
+      const q = query(
+        collection(db, 'Seller_Draft'),
+        where('UserId', '==', userId),
+      );
+
+      const unsubscribe = onSnapshot(
+        q,
+        querySnapshot => {
+          const List = [];
+          querySnapshot.forEach(doc => {
+            List.push({...doc.data()});
+          });
+          setDraftData(List);
+        },
+        error => {
+          console.error('Error listening for changes:', error);
+        },
+      );
+
+      return () => unsubscribe();
+    }
+  }, [userId]);
+
   return (
     <TopTab.Navigator tabBar={props => <CustomTabBar {...props} />}>
       <TopTab.Screen
         name="AllAds"
         component={AllAds}
-        options={{title: 'All Ads (0)'}}
+        options={{title: `All Ads (${data.length})`}}
       />
       <TopTab.Screen
         name="Active"
         component={Active}
-        options={{title: 'Active (0)'}}
+        options={{title: `Active (${activeData.length})`}}
       />
       <TopTab.Screen
         name="Drafts"
         component={Drafts}
-        options={{title: 'Drafts (0)'}}
+        options={{title: `Drafts (${draftData.length})`}}
       />
       <TopTab.Screen
         name="Inactive"

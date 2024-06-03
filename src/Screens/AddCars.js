@@ -17,6 +17,7 @@ import Textinput from '../Components/Textinput';
 import Button from '../Components/Button';
 import {db} from '../Firebase/Config';
 import {addDoc, collection} from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AddCars = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,6 +32,7 @@ const AddCars = () => {
   const [selectedImage, setSelectedImage] = useState([]);
   const [title, setTitle] = useState(null);
   const [price, setPrice] = useState(null);
+  const [userId, setUserId] = useState('');
 
   console.log('selectedBrand ==> ', selectedBrand);
   console.log('selectedYear ==>', selectedYear);
@@ -42,6 +44,7 @@ const AddCars = () => {
   console.log('selectedImage ==> ', selectedImage);
   console.log('title ==> ', title);
   console.log('price ==> ', price);
+  console.log('userId ==> ', userId);
   console.log('--------------------------------------------------------');
 
   let currentDate = new Date();
@@ -58,6 +61,21 @@ const AddCars = () => {
     acc[car.brand].push(car);
     return acc;
   }, {});
+
+  useEffect(() => {
+    getUserIdFromStorage();
+  }, []);
+
+  const getUserIdFromStorage = async () => {
+    try {
+      const id = await AsyncStorage.getItem('UserId');
+      if (id !== null) {
+        setUserId(id);
+      }
+    } catch (error) {
+      console.error('Error retrieving userId from AsyncStorage:', error);
+    }
+  };
 
   useEffect(() => {
     if (selectedBrand) {
@@ -305,10 +323,36 @@ const AddCars = () => {
         Title: title,
         Price: price,
         postedDate: formattedDate,
+        UserId: userId,
       };
 
       await addDoc(collection(db, 'CreateAD'), docData);
       console.log('Data inserted successfully!');
+    } catch (error) {
+      console.error('Error ==> ', error);
+    }
+  };
+
+  const addDataIntoDraft = async () => {
+    try {
+      const docData = {
+        Brand: selectedBrand,
+        Year: selectedYear,
+        ModelName: selectedModel.model,
+        ModelImage: selectedModel.model_image,
+        Variant: selectedVariant,
+        Carcondition: selectedCondition,
+        Color: selectedColor,
+        RegistationCenter: selectedCenter,
+        CarPhotos: selectedImage,
+        Title: title,
+        Price: price,
+        postedDate: formattedDate,
+        UserId: userId,
+      };
+
+      await addDoc(collection(db, 'Seller_Draft'), docData);
+      console.log('Data inserted into Seller_Draft successfully!');
     } catch (error) {
       console.error('Error ==> ', error);
     }
@@ -611,7 +655,7 @@ const AddCars = () => {
         selectedColor &&
         selectedImage && (
           <>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={saveData}>
               <Button
                 name="Review and Publish"
                 backgroundColor="#01a0e9"
@@ -619,7 +663,7 @@ const AddCars = () => {
               />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={saveData}>
+            <TouchableOpacity onPress={addDataIntoDraft}>
               <Button
                 name="Save as Draft"
                 backgroundColor="#d5eefb"

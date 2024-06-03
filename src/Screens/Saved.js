@@ -12,14 +12,13 @@ import React, {useEffect, useState} from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Icons from 'react-native-vector-icons/MaterialCommunityIcons';
 import IconS from 'react-native-vector-icons/Octicons';
-import CarListScroll from '../Components/CarListScroll';
 import {
   collection,
   deleteDoc,
   doc,
-  getDocs,
   query,
   where,
+  onSnapshot,
 } from 'firebase/firestore';
 import {db} from '../Firebase/Config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -32,11 +31,34 @@ const Saved = () => {
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState('');
 
-  useEffect(() => {}, [userId]);
+  useEffect(() => {
+    if (userId) {
+      const q = query(
+        collection(db, 'Favorites_Seller'),
+        where('UserId', '==', userId),
+      );
+      const unsubscribe = onSnapshot(
+        q,
+        querySnapshot => {
+          let FavoritesList = [];
+          querySnapshot.forEach(doc => {
+            FavoritesList.push({...doc.data(), id: doc.id});
+          });
+          setFavorites(FavoritesList);
+          setLoading(false);
+        },
+        error => {
+          setError(error.message);
+          setLoading(false);
+        },
+      );
+
+      return () => unsubscribe();
+    }
+  }, [userId]);
 
   useFocusEffect(
     React.useCallback(() => {
-      getFavorites(userId);
       getUserIdFromStorage();
     }, []),
   );
@@ -52,56 +74,13 @@ const Saved = () => {
     }
   };
 
-  // const getFavorites = async () => {
-  //   try {
-  //     const docSnap = await getDocs(
-  //       collection(db, 'Favorites_Seller'),
-  //       where('UserId', '==', userId),
-  //     );
-  //     let FavoritesList = [];
-  //     docSnap.forEach(doc => {
-  //       FavoritesList.push({...doc.data()});
-  //     });
-  //     setFavorites(FavoritesList);
-  //     setLoading(false);
-  //   } catch (error) {
-  //     setError(error.message);
-  //     setLoading(false);
-  //   }
-  // };
-
-  const getFavorites = async userId => {
-    try {
-      const q = query(
-        collection(db, 'Favorites_Seller'),
-        where('UserId', '==', userId),
-      );
-      const docSnap = await getDocs(q);
-      let FavoritesList = [];
-      docSnap.forEach(doc => {
-        FavoritesList.push({...doc.data()});
-      });
-      setFavorites(FavoritesList);
-      setLoading(false);
-    } catch (error) {
-      setError(error.message);
-      setLoading(false);
-    }
-  };
-
   const removeFavourite = async id => {
-    const q = query(
-      collection(db, 'Favorites_Seller'),
-      where('UserId', '==', userId),
-      where('id', '==', id),
-    );
-    const querySnapshot = await getDocs(q);
-    querySnapshot.forEach(async docSnap => {
-      await deleteDoc(doc(db, 'Favorites_Seller', docSnap.id)).then(() => {
-        console.log('Successfully deleted data from favorite collection');
-        setFavorites(favorites.filter(favId => favId !== id));
-      });
-    });
+    try {
+      await deleteDoc(doc(db, 'Favorites_Seller', id));
+      console.log('Successfully deleted data from favorite collection');
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+    }
   };
 
   const renderItem = ({item}) => {
@@ -212,7 +191,6 @@ const Saved = () => {
       </View>
 
       {/* Saved Car List */}
-
       {favorites.length > 0 ? (
         <FlatList
           data={favorites}

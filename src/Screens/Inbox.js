@@ -156,6 +156,7 @@ const Inbox = () => {
         user={{_id: storedUserId}}
         renderInputToolbar={renderInputToolbar}
         renderBubble={renderBubble}
+        showUserAvatar={false}
       />
     </View>
   );
