@@ -174,6 +174,7 @@ export const TopTabNavigator = () => {
   const [data, setData] = useState('');
   const [activeData, setActiveData] = useState('');
   const [draftData, setDraftData] = useState([]);
+  const [inActiveData, setInActiveData] = useState([]);
 
   useEffect(() => {
     getUserIdFromStorage();
@@ -258,6 +259,32 @@ export const TopTabNavigator = () => {
     }
   }, [userId]);
 
+  // InActive data
+  useEffect(() => {
+    if (userId) {
+      const q = query(
+        collection(db, 'Seller_InActive'),
+        where('UserId', '==', userId),
+      );
+
+      const unsubscribe = onSnapshot(
+        q,
+        querySnapshot => {
+          const List = [];
+          querySnapshot.forEach(doc => {
+            List.push({...doc.data()});
+          });
+          setInActiveData(List);
+        },
+        error => {
+          console.error('Error listening for changes:', error);
+        },
+      );
+
+      return () => unsubscribe();
+    }
+  }, [userId]);
+
   return (
     <TopTab.Navigator tabBar={props => <CustomTabBar {...props} />}>
       <TopTab.Screen
@@ -278,7 +305,7 @@ export const TopTabNavigator = () => {
       <TopTab.Screen
         name="Inactive"
         component={Inactive}
-        options={{title: 'Inactive (0)'}}
+        options={{title: `Inactive (${inActiveData.length})`}}
       />
     </TopTab.Navigator>
   );

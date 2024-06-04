@@ -36,6 +36,7 @@ const AddCars = () => {
 
   console.log('selectedBrand ==> ', selectedBrand);
   console.log('selectedYear ==>', selectedYear);
+  console.log('selectedModelCars ==> ', selectedModelCars);
   console.log('selectedModel ==> ', selectedModel);
   console.log('selectedVariant ==> ', selectedVariant);
   console.log('selectedCondition ==> ', selectedCondition);

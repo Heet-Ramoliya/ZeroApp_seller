@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {collection, query, where, onSnapshot} from 'firebase/firestore';
 import {db} from '../Firebase/Config';
 
-const Active = () => {
+const Active = ({navigation}) => {
   const [userId, setUserId] = useState('');
   const [activeData, setActiveData] = useState([]);
 
@@ -57,34 +57,50 @@ const Active = () => {
 
   const renderItem = ({item}) => {
     return (
-      <View style={styles.card}>
-        <View style={styles.mainContainer}>
-          <View style={styles.imgContainer}>
-            <Image
-              source={{uri: item.ModelImage}}
-              style={styles.img}
-              resizeMode={'contain'}
-            />
-          </View>
-          <View style={styles.infoContainer}>
-            <Text style={styles.title}>{item.Title}</Text>
-            <Text style={styles.price}>${item.Price}</Text>
-            <Text style={styles.date}>Posted on: {item.postedDate}</Text>
+      <TouchableOpacity
+        onPress={() => {
+          navigation.navigate('ActiveDetailsScreen', {item: item});
+        }}>
+        <View style={styles.card}>
+          <View style={styles.mainContainer}>
+            <View style={styles.imgContainer}>
+              <Image
+                source={{uri: item.ModelImage}}
+                style={styles.img}
+                resizeMode={'contain'}
+              />
+            </View>
+            <View style={styles.infoContainer}>
+              <Text style={styles.title}>{item.Title}</Text>
+              <Text style={styles.price}>${item.Price}</Text>
+              <Text style={styles.date}>Posted on: {item.postedDate}</Text>
+            </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
   return (
-    <TouchableOpacity>
-      <FlatList
-        data={activeData}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.listContent}
-      />
-    </TouchableOpacity>
+    <View>
+      {activeData.length > 0 ? (
+        <FlatList
+          data={activeData}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={styles.listContent}
+        />
+      ) : (
+        <View
+          style={{
+            alignItems: 'center',
+          }}>
+          <Text style={{fontSize: 18, color: 'black', fontWeight: '600'}}>
+            No Active items
+          </Text>
+        </View>
+      )}
+    </View>
   );
 };
 

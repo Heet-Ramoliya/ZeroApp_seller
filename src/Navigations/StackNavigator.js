@@ -18,6 +18,9 @@ import AllDone from '../Screens/AllDone';
 import SystemPermission from '../Screens/SystemPermission';
 import AddCars from '../Screens/AddCars';
 import ChangePassword from '../Screens/ChangePassword';
+import ActiveDetailsScreen from '../Screens/ActiveDetailsScreen';
+import Drafts from '../Screens/Drafts';
+import DraftDetailsScreen from '../Screens/DraftDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -153,6 +156,30 @@ const StackNavigator = () => {
         <Stack.Screen
           name="ChangePassword"
           component={ChangePassword}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+          }}
+        />
+        <Stack.Screen
+          name="ActiveDetailsScreen"
+          component={ActiveDetailsScreen}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+          }}
+        />
+        <Stack.Screen
+          name="Drafts"
+          component={Drafts}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+          }}
+        />
+        <Stack.Screen
+          name="DraftDetailsScreen"
+          component={DraftDetailsScreen}
           options={{
             headerShown: true,
             headerTitleAlign: 'center',

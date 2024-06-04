@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {collection, query, where, onSnapshot} from 'firebase/firestore';
 import {db} from '../Firebase/Config';
 
-const Drafts = () => {
+const Drafts = ({navigation}) => {
   const [userId, setUserId] = useState('');
   const [draftData, setDraftData] = useState([]);
 
@@ -57,34 +57,50 @@ const Drafts = () => {
 
   const renderItem = ({item}) => {
     return (
-      <View style={styles.card}>
-        <View style={styles.mainContainer}>
-          <View style={styles.imgContainer}>
-            <Image
-              source={{uri: item.ModelImage}}
-              style={styles.img}
-              resizeMode={'contain'}
-            />
-          </View>
-          <View style={styles.infoContainer}>
-            <Text style={styles.title}>{item.Title}</Text>
-            <Text style={styles.price}>${item.Price}</Text>
-            <Text style={styles.date}>Posted on: {item.postedDate}</Text>
+      <TouchableOpacity
+        onPress={() => {
+          navigation.navigate('DraftDetailsScreen', {data: item});
+        }}>
+        <View style={styles.card}>
+          <View style={styles.mainContainer}>
+            <View style={styles.imgContainer}>
+              <Image
+                source={{uri: item.ModelImage}}
+                style={styles.img}
+                resizeMode={'contain'}
+              />
+            </View>
+            <View style={styles.infoContainer}>
+              <Text style={styles.title}>{item.Title}</Text>
+              <Text style={styles.price}>${item.Price}</Text>
+              <Text style={styles.date}>Posted on: {item.postedDate}</Text>
+            </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
   return (
-    <TouchableOpacity>
-      <FlatList
-        data={draftData}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.listContent}
-      />
-    </TouchableOpacity>
+    <View>
+      {draftData.length > 0 ? (
+        <FlatList
+          data={draftData}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={styles.listContent}
+        />
+      ) : (
+        <View
+          style={{
+            alignItems: 'center',
+          }}>
+          <Text style={{fontSize: 18, color: 'black', fontWeight: '600'}}>
+            No Drafts items
+          </Text>
+        </View>
+      )}
+    </View>
   );
 };
 
