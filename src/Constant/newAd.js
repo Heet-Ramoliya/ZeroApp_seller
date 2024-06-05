@@ -23,7 +23,7 @@ export const carDatas = [
   },
   {
     brand: 'Toyota',
-    logo: 'https://www.freepnglog os.com/uploads/toyota-logo-png/logo-toyota-transparent-19.png',
+    logo: 'https://www.freepnglogos.com/uploads/toyota-logo-png/logo-toyota-transparent-19.png',
     year: 2020,
     model: 'Supra',
     model_image:
@@ -34,7 +34,7 @@ export const carDatas = [
   },
   {
     brand: 'Toyota',
-    logo: 'https://www.seekpng.com/png/detail/251-2516860_new-2019-toyota-camry-le-2019-toyota-camry.png',
+    logo: 'https://www.freepnglogos.com/uploads/toyota-logo-png/logo-toyota-transparent-19.png',
     year: 2019,
     model: 'Corolla',
     model_image:

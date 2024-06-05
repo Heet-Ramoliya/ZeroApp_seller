@@ -363,12 +363,12 @@ const AddCars = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={{flex: 1}}>
         {/* Heading */}
-        <View style={styles.heading}>
+        {/* <View style={styles.heading}>
           <Text style={styles.headingText}>Car brands</Text>
-        </View>
+        </View> */}
 
         {/* SearchBar */}
-        <View style={styles.searchBar}>
+        {/* <View style={styles.searchBar}>
           <Icon name="search" size={30} color="#20abeb" />
           <TextInput
             placeholder="Search car brand"
@@ -376,7 +376,7 @@ const AddCars = () => {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-        </View>
+        </View> */}
 
         {/* Popular Brands */}
         <View style={styles.brandsContainer}>
