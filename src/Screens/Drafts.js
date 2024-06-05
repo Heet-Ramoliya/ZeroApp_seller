@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {collection, query, where, onSnapshot} from 'firebase/firestore';
 import {db} from '../Firebase/Config';
 
-const Drafts = ({navigation}) => {
+const Drafts = ({navigation, searchQuery}) => {
   const [userId, setUserId] = useState('');
   const [draftData, setDraftData] = useState([]);
 
@@ -55,6 +55,10 @@ const Drafts = ({navigation}) => {
     }
   }, [userId]);
 
+  const filteredData = draftData.filter(ad =>
+    ad.Title.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
   const renderItem = ({item}) => {
     return (
       <TouchableOpacity
@@ -83,9 +87,9 @@ const Drafts = ({navigation}) => {
 
   return (
     <View>
-      {draftData.length > 0 ? (
+      {filteredData.length > 0 ? (
         <FlatList
-          data={draftData}
+          data={filteredData}
           renderItem={renderItem}
           keyExtractor={(item, index) => index.toString()}
           contentContainerStyle={styles.listContent}

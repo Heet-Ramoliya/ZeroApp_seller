@@ -25,7 +25,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect} from '@react-navigation/native';
 
-const AllAds = ({navigation}) => {
+const AllAds = ({navigation, searchQuery}) => {
   const [allData, setAllData] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [userId, setUserId] = useState('');
@@ -144,6 +144,10 @@ const AllAds = ({navigation}) => {
     }
   };
 
+  const filteredData = allData.filter(ad =>
+    ad.Title.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
   const renderItem = ({item}) => {
     const isFavorite = favorites.includes(item.id);
 
@@ -218,7 +222,7 @@ const AllAds = ({navigation}) => {
     <View style={styles.container}>
       {loading ? (
         <ActivityIndicator size="large" color="#00a0e9" style={styles.loader} />
-      ) : allData.length === 0 ? (
+      ) : filteredData.length === 0 ? (
         <View style={styles.mainContent}>
           <Image
             source={require('../../utils/Images/AllAd.jpg')}
@@ -237,7 +241,7 @@ const AllAds = ({navigation}) => {
         </View>
       ) : (
         <FlatList
-          data={allData}
+          data={filteredData}
           renderItem={renderItem}
           keyExtractor={(item, index) => index.toString()}
           contentContainerStyle={styles.listContent}

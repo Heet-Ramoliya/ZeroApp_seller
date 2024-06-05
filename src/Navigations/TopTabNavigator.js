@@ -30,9 +30,13 @@ const {height} = Dimensions.get('window');
 
 const TopTab = createMaterialTopTabNavigator();
 
-const CustomTabBar = ({state, descriptors, navigation}) => {
-  const [searchQuery, setSearchQuery] = useState('');
-
+const CustomTabBar = ({
+  state,
+  descriptors,
+  navigation,
+  searchQuery,
+  setSearchQuery,
+}) => {
   return (
     <ImageBackground
       //   source={{
@@ -69,9 +73,9 @@ const CustomTabBar = ({state, descriptors, navigation}) => {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Icon name="filter-outline" size={30} color="#20abeb" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 
@@ -175,6 +179,7 @@ export const TopTabNavigator = () => {
   const [activeData, setActiveData] = useState('');
   const [draftData, setDraftData] = useState([]);
   const [inActiveData, setInActiveData] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     getUserIdFromStorage();
@@ -286,27 +291,34 @@ export const TopTabNavigator = () => {
   }, [userId]);
 
   return (
-    <TopTab.Navigator tabBar={props => <CustomTabBar {...props} />}>
+    <TopTab.Navigator
+      tabBar={props => (
+        <CustomTabBar
+          {...props}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
+      )}>
       <TopTab.Screen
         name="AllAds"
-        component={AllAds}
-        options={{title: `All Ads (${data.length})`}}
-      />
+        options={{title: `All Ads (${data.length})`}}>
+        {props => <AllAds {...props} searchQuery={searchQuery} />}
+      </TopTab.Screen>
       <TopTab.Screen
         name="Active"
-        component={Active}
-        options={{title: `Active (${activeData.length})`}}
-      />
+        options={{title: `Active (${activeData.length})`}}>
+        {props => <Active {...props} searchQuery={searchQuery} />}
+      </TopTab.Screen>
       <TopTab.Screen
         name="Drafts"
-        component={Drafts}
-        options={{title: `Drafts (${draftData.length})`}}
-      />
+        options={{title: `Drafts (${draftData.length})`}}>
+        {props => <Drafts {...props} searchQuery={searchQuery} />}
+      </TopTab.Screen>
       <TopTab.Screen
         name="Inactive"
-        component={Inactive}
-        options={{title: `Inactive (${inActiveData.length})`}}
-      />
+        options={{title: `Inactive (${inActiveData.length})`}}>
+        {props => <Inactive {...props} searchQuery={searchQuery} />}
+      </TopTab.Screen>
     </TopTab.Navigator>
   );
 };

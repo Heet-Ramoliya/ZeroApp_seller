@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {collection, query, where, onSnapshot} from 'firebase/firestore';
 import {db} from '../Firebase/Config';
 
-const Inactive = ({navigation}) => {
+const Inactive = ({navigation, searchQuery}) => {
   const [userId, setUserId] = useState('');
   const [inActiveData, setInActiveData] = useState([]);
 
@@ -55,6 +55,10 @@ const Inactive = ({navigation}) => {
     }
   }, [userId]);
 
+  const filteredData = inActiveData.filter(ad =>
+    ad.Title.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
   const renderItem = ({item}) => {
     return (
       <View style={styles.card}>
@@ -78,9 +82,9 @@ const Inactive = ({navigation}) => {
 
   return (
     <View>
-      {inActiveData.length > 0 ? (
+      {filteredData.length > 0 ? (
         <FlatList
-          data={inActiveData}
+          data={filteredData}
           renderItem={renderItem}
           keyExtractor={(item, index) => index.toString()}
           contentContainerStyle={styles.listContent}
