@@ -1,44 +1,319 @@
-// import {View, Text} from 'react-native';
-// import React from 'react';
-// import InboxHorizontalList from '../Components/InboxHorizontalList';
-// import InboxVerticalList from '../Components/InboxVerticalList';
+// import {View, Text, FlatList, Image, TouchableOpacity} from 'react-native';
+// import React, {useEffect, useState} from 'react';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import {
+//   collection,
+//   getDocs,
+//   onSnapshot,
+//   query,
+//   where,
+// } from 'firebase/firestore';
+// import {db, RealTimeDatabase} from '../Firebase/Config';
+// import Icons from 'react-native-vector-icons/FontAwesome6';
+// import {onValue, ref} from 'firebase/database';
 
-// const Inbox = () => {
+// const Inbox = ({navigation}) => {
+//   const [buyerdata, setBuyerData] = useState([]);
+//   const [userId, setUserId] = useState('');
+
+//   useEffect(() => {
+//     const getUserIdFromStorage = async () => {
+//       try {
+//         const id = await AsyncStorage.getItem('UserId');
+//         if (id !== null) {
+//           setUserId(id);
+//         }
+//       } catch (error) {
+//         console.error('Error retrieving userId from AsyncStorage:', error);
+//       }
+//     };
+
+//     getUserIdFromStorage();
+//   }, []);
+
+//   useEffect(() => {
+//     if (userId) {
+//       const q = query(collection(db, 'Name'));
+
+//       const unsubscribe = onSnapshot(
+//         q,
+//         querySnapshot => {
+//           const List = [];
+//           querySnapshot.forEach(doc => {
+//             List.push({...doc.data()});
+//           });
+//           setBuyerData(List);
+//         },
+//         error => {
+//           console.error('Error listening for changes:', error);
+//         },
+//       );
+
+//       return () => unsubscribe();
+//     }
+//   }, [userId]);
+
+//   const renderItem = ({item}) => {
+//     return (
+//       <>
+//         <TouchableOpacity
+//           onPress={() => {
+//             navigation.navigate('Chat', {data: item});
+//           }}>
+//           <View
+//             style={{
+//               marginHorizontal: 10,
+//               marginVertical: 10,
+//               backgroundColor: 'white',
+//               borderRadius: 20,
+//             }}>
+//             <View style={{flexDirection: 'row', padding: 8}}>
+//               <View>
+//                 <Image
+//                   source={{uri: item.image}}
+//                   resizeMode={'contain'}
+//                   style={{height: 50, width: 50, borderRadius: 100}}
+//                 />
+//               </View>
+//               <View
+//                 style={{
+//                   flex: 1,
+//                   justifyContent: 'center',
+//                   marginHorizontal: 10,
+//                 }}>
+//                 <View
+//                   style={{
+//                     flexDirection: 'row',
+//                     justifyContent: 'space-between',
+//                   }}>
+//                   <Text
+//                     style={{fontSize: 17, color: 'black', fontWeight: '500'}}>
+//                     {item.FirstName}
+//                   </Text>
+//                   <View style={{justifyContent: 'center'}}>
+//                     <Icons name="angle-right" size={20} color="#20abeb" />
+//                   </View>
+//                 </View>
+//               </View>
+//             </View>
+//           </View>
+//         </TouchableOpacity>
+//       </>
+//     );
+//   };
+
 //   return (
 //     <View>
-//       <View style={{marginLeft: 10, marginTop: 10, marginEnd: 10}}>
-//         <InboxHorizontalList />
-//       </View>
-//       <View style={{marginTop: 10}}>
-//         <InboxVerticalList />
-//       </View>
+//       <FlatList
+//         data={buyerdata}
+//         renderItem={renderItem}
+//         keyExtractor={(item, index) => index.toString()}
+//       />
 //     </View>
 //   );
 // };
 
 // export default Inbox;
 
-import {View, TouchableOpacity, TextInput, StyleSheet} from 'react-native';
-import React, {useEffect, useState, useCallback} from 'react';
-import Icon from 'react-native-vector-icons/Feather';
-import Icons from 'react-native-vector-icons/Ionicons';
-import {GiftedChat, Bubble} from 'react-native-gifted-chat';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ref, onValue, push, set} from 'firebase/database';
-import {RealTimeDatabase} from '../Firebase/Config';
-import moment from 'moment';
+// import {View, Text, FlatList, Image, TouchableOpacity} from 'react-native';
+// import React, {useEffect, useState} from 'react';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import {collection, onSnapshot, query, where} from 'firebase/firestore';
+// import {db, RealTimeDatabase} from '../Firebase/Config';
+// import Icons from 'react-native-vector-icons/FontAwesome6';
+// import {onValue, ref} from 'firebase/database';
 
-const Inbox = () => {
-  const [messages, setMessages] = useState([]);
-  const [text, setText] = useState('');
-  const [storedUserId, setStoredUserId] = useState('');
+// const Inbox = ({navigation}) => {
+//   const [buyerData, setBuyerData] = useState([]);
+//   const [userId, setUserId] = useState('');
+//   const [buyersWithMessages, setBuyersWithMessages] = useState([]);
+//   const [businessProfileData, setBusinessProfileData] = useState([]);
+//   const [businessName, setBusinessName] = useState('');
+
+//   useEffect(() => {
+//     const getUserIdFromStorage = async () => {
+//       try {
+//         const id = await AsyncStorage.getItem('UserId');
+//         if (id !== null) {
+//           setUserId(id);
+//         }
+//       } catch (error) {
+//         console.error('Error retrieving userId from AsyncStorage:', error);
+//       }
+//     };
+
+//     getUserIdFromStorage();
+//   }, []);
+
+//   useEffect(() => {
+//     if (userId) {
+//       const q = query(collection(db, 'Name'));
+
+//       const unsubscribe = onSnapshot(
+//         q,
+//         querySnapshot => {
+//           const list = [];
+//           querySnapshot.forEach(doc => {
+//             list.push({...doc.data()});
+//           });
+//           setBuyerData(list);
+//         },
+//         error => {
+//           console.error('Error listening for changes:', error);
+//         },
+//       );
+
+//       return () => unsubscribe();
+//     }
+//   }, [userId]);
+
+//   useEffect(() => {
+//     if (userId) {
+//       const q = query(
+//         collection(db, 'Seller_BusinessInfo'),
+//         where('UserId', '==', userId),
+//       );
+
+//       const unsubscribe = onSnapshot(
+//         q,
+//         querySnapshot => {
+//           const list = [];
+//           querySnapshot.forEach(doc => {
+//             list.push({...doc.data()});
+//           });
+//           setBusinessProfileData(list);
+//           if (list.length > 0) {
+//             const user = list[0];
+//             setBusinessName(user.BusinessName);
+//           }
+//         },
+//         error => {
+//           console.error('Error listening for changes:', error);
+//         },
+//       );
+
+//       return () => unsubscribe();
+//     }
+//   }, [userId]);
+
+//   useEffect(() => {
+//     if (userId && businessName) {
+//       const sellerChatsRef = ref(RealTimeDatabase, `Users`);
+
+//       const unsubscribe = onValue(sellerChatsRef, snapshot => {
+//         const data = snapshot.val();
+//         if (data) {
+//           const buyers = Object.keys(data)
+//             .filter(key => key.includes(`To${businessName}`))
+//             .map(key => {
+//               const buyerId = key.split('To')[0];
+//               console.log('buyerId ==> ', buyerId);
+//               return buyerData.find(buyer => buyer.FirstName === buyerId);
+//             })
+//             .filter(Boolean);
+
+//           setBuyersWithMessages(buyers);
+//         }
+//       });
+
+//       return () => unsubscribe();
+//     }
+//   }, [userId, buyerData, businessName]);
+
+//   const renderItem = ({item}) => (
+//     <TouchableOpacity
+//       onPress={() => {
+//         navigation.navigate('Chat', {data: item});
+//       }}>
+//       <View
+//         style={{
+//           marginHorizontal: 10,
+//           marginVertical: 10,
+//           backgroundColor: 'white',
+//           borderRadius: 20,
+//         }}>
+//         <View style={{flexDirection: 'row', padding: 8}}>
+//           <View>
+//             <Image
+//               source={{uri: item.image}}
+//               resizeMode={'contain'}
+//               style={{height: 50, width: 50, borderRadius: 100}}
+//             />
+//           </View>
+//           <View
+//             style={{
+//               flex: 1,
+//               justifyContent: 'center',
+//               marginHorizontal: 10,
+//             }}>
+//             <View
+//               style={{
+//                 flexDirection: 'row',
+//                 justifyContent: 'space-between',
+//               }}>
+//               <Text style={{fontSize: 17, color: 'black', fontWeight: '500'}}>
+//                 {item.FirstName}
+//               </Text>
+//               <View style={{justifyContent: 'center'}}>
+//                 <Icons name="angle-right" size={20} color="#20abeb" />
+//               </View>
+//             </View>
+//           </View>
+//         </View>
+//       </View>
+//     </TouchableOpacity>
+//   );
+
+//   return (
+//     <View>
+//       {buyersWithMessages.length > 0 ? (
+//         <FlatList
+//           data={buyersWithMessages}
+//           renderItem={renderItem}
+//           keyExtractor={(item, index) => index.toString()}
+//         />
+//       ) : (
+//         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+//           <Text style={{fontWeight: '500', fontSize: 16, color: 'black'}}>
+//             No buyer send message
+//           </Text>
+//         </View>
+//       )}
+//     </View>
+//   );
+// };
+
+// export default Inbox;
+
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {collection, onSnapshot, query, where} from 'firebase/firestore';
+import {db, RealTimeDatabase} from '../Firebase/Config';
+import Icons from 'react-native-vector-icons/FontAwesome6';
+import {onValue, ref} from 'firebase/database';
+
+const Inbox = ({navigation}) => {
+  const [buyerData, setBuyerData] = useState([]);
+  const [userId, setUserId] = useState('');
+  const [buyersWithMessages, setBuyersWithMessages] = useState([]);
+  const [businessProfileData, setBusinessProfileData] = useState([]);
+  const [businessName, setBusinessName] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getUserIdFromStorage = async () => {
       try {
         const id = await AsyncStorage.getItem('UserId');
-        if (id) {
-          setStoredUserId(id);
+        if (id !== null) {
+          setUserId(id);
         }
       } catch (error) {
         console.error('Error retrieving userId from AsyncStorage:', error);
@@ -46,174 +321,152 @@ const Inbox = () => {
     };
 
     getUserIdFromStorage();
-
-    const chatsRef = ref(RealTimeDatabase, 'Chats');
-    const unsubscribe = onValue(chatsRef, snapshot => {
-      const data = snapshot.val();
-      if (data) {
-        const messagesArray = Object.keys(data).map(key => ({
-          _id: key,
-          createdAt: new Date(data[key].createdAt),
-          msgType: data[key].msgType,
-          text: data[key].text,
-          user: data[key].user,
-        }));
-        setMessages(messagesArray.reverse());
-      } else {
-        setMessages([]);
-      }
-    });
-
-    return () => unsubscribe();
   }, []);
 
-  const onSend = useCallback(async () => {
-    if (!text.trim()) {
-      return;
+  useEffect(() => {
+    if (userId) {
+      const q = query(collection(db, 'Name'));
+
+      const unsubscribe = onSnapshot(
+        q,
+        querySnapshot => {
+          const list = [];
+          querySnapshot.forEach(doc => {
+            list.push({...doc.data()});
+          });
+          setBuyerData(list);
+        },
+        error => {
+          console.error('Error listening for changes:', error);
+        },
+      );
+
+      return () => unsubscribe();
     }
+  }, [userId]);
 
-    const newMessage = {
-      _id: messages.length + 1,
-      text: text.trim(),
-      createdAt: new Date(),
-      user: {
-        _id: storedUserId,
-      },
-    };
+  useEffect(() => {
+    if (userId) {
+      const q = query(
+        collection(db, 'Seller_BusinessInfo'),
+        where('UserId', '==', userId),
+      );
 
-    setMessages(prevMessages => GiftedChat.append(prevMessages, [newMessage]));
-    setText('');
+      const unsubscribe = onSnapshot(
+        q,
+        querySnapshot => {
+          const list = [];
+          querySnapshot.forEach(doc => {
+            list.push({...doc.data()});
+          });
+          setBusinessProfileData(list);
+          if (list.length > 0) {
+            const user = list[0];
+            setBusinessName(user.BusinessName);
+          }
+        },
+        error => {
+          console.error('Error listening for changes:', error);
+        },
+      );
 
-    try {
-      const timestamp = moment().valueOf();
-      const newMessageRef = push(ref(RealTimeDatabase, 'Chats'));
-      const dbMessage = {
-        createdAt: timestamp,
-        user: newMessage.user,
-        text: newMessage.text,
-        msgType: 'text',
-      };
-
-      await set(newMessageRef, dbMessage);
-    } catch (error) {
-      console.error('Error sending message to database: ', error);
+      return () => unsubscribe();
     }
-  }, [text, messages, storedUserId]);
+  }, [userId]);
 
-  const renderInputToolbar = props => (
-    <View style={styles.inputToolbarContainer}>
-      <View style={styles.textInputContainer}>
-        <TextInput
-          placeholder="Enter your text"
-          value={text}
-          onChangeText={setText}
-          style={styles.textInput}
-        />
-        <View style={styles.iconContainer}>
-          <Icons
-            name="mic-outline"
-            size={30}
-            color="#00a0e9"
-            style={styles.icon}
-          />
-          <Icon name="camera" size={26} color="#00a0e9" style={styles.icon} />
+  useEffect(() => {
+    if (userId && businessName) {
+      const sellerChatsRef = ref(RealTimeDatabase, `Users`);
+
+      const unsubscribe = onValue(sellerChatsRef, snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          const buyers = Object.keys(data)
+            .filter(key => key.includes(`To${businessName}`))
+            .map(key => {
+              const buyerId = key.split('To')[0];
+              return buyerData.find(buyer => buyer.FirstName === buyerId);
+            })
+            .filter(Boolean);
+
+          setBuyersWithMessages(buyers);
+        } else {
+          setBuyersWithMessages([]);
+        }
+        setLoading(false);
+      });
+
+      return () => unsubscribe();
+    } else {
+      setLoading(false);
+    }
+  }, [userId, buyerData, businessName]);
+
+  const renderItem = ({item}) => (
+    <TouchableOpacity
+      onPress={() => {
+        navigation.navigate('Chat', {data: item});
+      }}>
+      <View
+        style={{
+          marginHorizontal: 10,
+          marginVertical: 10,
+          backgroundColor: 'white',
+          borderRadius: 20,
+        }}>
+        <View style={{flexDirection: 'row', padding: 8}}>
+          <View>
+            <Image
+              source={{uri: item.image}}
+              resizeMode={'contain'}
+              style={{height: 50, width: 50, borderRadius: 100}}
+            />
+          </View>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              marginHorizontal: 10,
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+              }}>
+              <Text style={{fontSize: 17, color: 'black', fontWeight: '500'}}>
+                {item.FirstName}
+              </Text>
+              <View style={{justifyContent: 'center'}}>
+                <Icons name="angle-right" size={20} color="#20abeb" />
+              </View>
+            </View>
+          </View>
         </View>
       </View>
-      <TouchableOpacity onPress={onSend} style={styles.sendButton}>
-        <Icons name="send-outline" size={30} color="#00a0e9" />
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderBubble = props => (
-    <Bubble
-      {...props}
-      wrapperStyle={{
-        left: {
-          backgroundColor: '#00a0e9',
-          marginHorizontal: -25,
-        },
-        right: {
-          backgroundColor: '#00a0e9',
-        },
-      }}
-      textStyle={{
-        left: {
-          color: 'white',
-        },
-        right: {
-          color: 'white',
-        },
-      }}
-    />
+    </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
-      <GiftedChat
-        messages={messages}
-        onSend={() => onSend()}
-        user={{_id: storedUserId}}
-        renderInputToolbar={renderInputToolbar}
-        renderBubble={renderBubble}
-        showUserAvatar={false}
-      />
+    <View style={{flex: 1}}>
+      {loading ? (
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      ) : buyersWithMessages.length > 0 ? (
+        <FlatList
+          data={buyersWithMessages}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => index.toString()}
+        />
+      ) : (
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <Text style={{fontWeight: '500', fontSize: 16, color: 'black'}}>
+            No buyer send message
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    marginBottom: 20,
-  },
-  inputToolbarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  textInputContainer: {
-    flexDirection: 'row',
-    flex: 1,
-    margin: 0,
-    backgroundColor: 'lightgrey',
-    borderRadius: 15,
-    marginHorizontal: 10,
-    justifyContent: 'space-around',
-  },
-  textInput: {
-    flex: 1,
-    color: 'black',
-  },
-  iconContainer: {
-    flexDirection: 'row',
-  },
-  icon: {
-    justifyContent: 'center',
-    padding: 8,
-  },
-  sendButton: {
-    justifyContent: 'center',
-    marginRight: 10,
-    padding: 8,
-  },
-  bubbleWrapper: {
-    left: {
-      backgroundColor: '#00a0e9',
-      marginVertical: 2,
-    },
-    right: {
-      backgroundColor: '#00a0e9',
-      marginVertical: 2,
-    },
-  },
-  bubbleText: {
-    left: {
-      color: 'white',
-    },
-    right: {
-      color: 'white',
-    },
-  },
-});
 
 export default Inbox;

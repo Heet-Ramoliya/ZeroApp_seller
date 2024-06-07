@@ -27,6 +27,7 @@
     "moment": "^2.30.1",
     "react": "18.2.0",
     "react-native": "0.74.1",
+    "react-native-animated-loader": "^1.0.0",
     "react-native-gifted-chat": "^2.4.0",
     "react-native-image-crop-picker": "^0.41.1",
     "react-native-modal-datetime-picker": "^17.1.0",

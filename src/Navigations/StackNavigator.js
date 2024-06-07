@@ -21,6 +21,9 @@ import ChangePassword from '../Screens/ChangePassword';
 import ActiveDetailsScreen from '../Screens/ActiveDetailsScreen';
 import Drafts from '../Screens/Drafts';
 import DraftDetailsScreen from '../Screens/DraftDetailsScreen';
+import Inbox from '../Screens/Inbox';
+import Chat from '../Screens/Chat';
+import AllAdsDetailsScreen from '../Screens/AllAdsDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -180,6 +183,30 @@ const StackNavigator = () => {
         <Stack.Screen
           name="DraftDetailsScreen"
           component={DraftDetailsScreen}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+          }}
+        />
+        <Stack.Screen
+          name="Inbox"
+          component={Inbox}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+          }}
+        />
+        <Stack.Screen
+          name="Chat"
+          component={Chat}
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+          }}
+        />
+        <Stack.Screen
+          name="AllAdsDetailsScreen"
+          component={AllAdsDetailsScreen}
           options={{
             headerShown: true,
             headerTitleAlign: 'center',

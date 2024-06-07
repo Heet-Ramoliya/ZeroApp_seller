@@ -152,69 +152,74 @@ const AllAds = ({navigation, searchQuery}) => {
     const isFavorite = favorites.includes(item.id);
 
     return (
-      <View style={styles.card}>
-        <View style={styles.mainContainer}>
-          <View style={styles.imgContainer}>
-            <Image
-              source={{uri: item.ModelImage}}
-              style={styles.img}
-              resizeMode={'contain'}
-            />
-          </View>
-          <View style={styles.infoContainer}>
-            <Text style={styles.title}>{item.Title}</Text>
-            <Text style={styles.price}>${item.Price}</Text>
-            <Text style={styles.date}>Posted on: {item.postedDate}</Text>
-            <View style={{flexDirection: 'row'}}>
-              <View
-                style={{
-                  backgroundColor: '#00a0e9',
-                  borderRadius: 10,
-                  marginRight: 5,
-                }}>
-                <Text style={{color: 'white', padding: 4, fontSize: 12}}>
-                  Active
-                </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: '#00a0e9',
-                  borderRadius: 10,
-                  marginRight: 5,
-                }}>
-                <Text style={{color: 'white', padding: 4, fontSize: 12}}>
-                  Promoted
-                </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: '#00a0e9',
-                  borderRadius: 10,
-                  marginRight: 5,
-                }}>
-                <Text style={{color: 'white', padding: 4, fontSize: 12}}>
-                  Draft
-                </Text>
-              </View>
-              <View style={{justifyContent: 'center', marginRight: 5}}>
-                <AntDesign name="calendar" size={20} color="#00a0e9" />
-              </View>
-              <View style={{justifyContent: 'center', marginRight: 5}}>
-                <Icons name="message-square" size={20} color="#00a0e9" />
+      <TouchableOpacity
+        onPress={() => {
+          navigation.navigate('AllAdsDetailsScreen', {item: item});
+        }}>
+        <View style={styles.card}>
+          <View style={styles.mainContainer}>
+            <View style={styles.imgContainer}>
+              <Image
+                source={{uri: item.ModelImage}}
+                style={styles.img}
+                resizeMode={'contain'}
+              />
+            </View>
+            <View style={styles.infoContainer}>
+              <Text style={styles.title}>{item.Title}</Text>
+              <Text style={styles.price}>${item.Price}</Text>
+              <Text style={styles.date}>Posted on: {item.postedDate}</Text>
+              <View style={{flexDirection: 'row'}}>
+                <View
+                  style={{
+                    backgroundColor: '#00a0e9',
+                    borderRadius: 10,
+                    marginRight: 5,
+                  }}>
+                  <Text style={{color: 'white', padding: 4, fontSize: 12}}>
+                    Active
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    backgroundColor: '#00a0e9',
+                    borderRadius: 10,
+                    marginRight: 5,
+                  }}>
+                  <Text style={{color: 'white', padding: 4, fontSize: 12}}>
+                    Promoted
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    backgroundColor: '#00a0e9',
+                    borderRadius: 10,
+                    marginRight: 5,
+                  }}>
+                  <Text style={{color: 'white', padding: 4, fontSize: 12}}>
+                    Draft
+                  </Text>
+                </View>
+                <View style={{justifyContent: 'center', marginRight: 5}}>
+                  <AntDesign name="calendar" size={20} color="#00a0e9" />
+                </View>
+                <View style={{justifyContent: 'center', marginRight: 5}}>
+                  <Icons name="message-square" size={20} color="#00a0e9" />
+                </View>
               </View>
             </View>
-          </View>
-          <View style={{justifyContent: 'center'}}>
-            <TouchableOpacity onPress={() => toggleFavourite(item)}>
-              <Icon
-                name={isFavorite ? 'favorite' : 'favorite-outline'}
-                size={24}
-                color={isFavorite ? 'red' : 'black'}
-              />
-            </TouchableOpacity>
+            <View style={{justifyContent: 'center'}}>
+              <TouchableOpacity onPress={() => toggleFavourite(item)}>
+                <Icon
+                  name={isFavorite ? 'favorite' : 'favorite-outline'}
+                  size={24}
+                  color={isFavorite ? 'red' : 'black'}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

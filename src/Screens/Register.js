@@ -16,12 +16,22 @@ const Register = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const validateEmail = email => {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailPattern.test(email);
+  };
+
   const emailRegister = () => {
     if (!email || !password) {
       ToastAndroid.show(
         'Email and password cannot be empty!',
         ToastAndroid.SHORT,
       );
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      ToastAndroid.show('Invalid email address!', ToastAndroid.SHORT);
       return;
     }
 

@@ -51,7 +51,7 @@ const Saved = () => {
       });
       setFavorites(filteredData);
     }
-  }, [searchQuery, originalFavorites]);
+  }, [searchQuery]);
 
   useEffect(() => {
     getData();
@@ -509,7 +509,12 @@ const Saved = () => {
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
             justifyContent: 'flex-end',
           }}>
-          <View style={{backgroundColor: 'white'}}>
+          <View
+            style={{
+              backgroundColor: 'white',
+              borderTopLeftRadius: 15,
+              borderTopRightRadius: 15,
+            }}>
             <View style={{marginHorizontal: 15, marginVertical: 15}}>
               <View
                 style={{flexDirection: 'row', justifyContent: 'space-between'}}>

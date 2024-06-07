@@ -34,20 +34,6 @@ const AddCars = () => {
   const [price, setPrice] = useState(null);
   const [userId, setUserId] = useState('');
 
-  console.log('selectedBrand ==> ', selectedBrand);
-  console.log('selectedYear ==>', selectedYear);
-  console.log('selectedModelCars ==> ', selectedModelCars);
-  console.log('selectedModel ==> ', selectedModel);
-  console.log('selectedVariant ==> ', selectedVariant);
-  console.log('selectedCondition ==> ', selectedCondition);
-  console.log('selectedColor ==> ', selectedColor);
-  console.log('selectedCenter ==> ', selectedCenter);
-  console.log('selectedImage ==> ', selectedImage);
-  console.log('title ==> ', title);
-  console.log('price ==> ', price);
-  console.log('userId ==> ', userId);
-  console.log('--------------------------------------------------------');
-
   let currentDate = new Date();
   let formattedDate = currentDate.toLocaleDateString('en-IN', {
     month: 'long',
@@ -463,7 +449,7 @@ const AddCars = () => {
                 marginTop: 10,
               }}>
               {renderCondition('New Car')}
-              {renderCondition('Used Car')}
+              {renderCondition('Old Car')}
             </View>
           </>
         )}
