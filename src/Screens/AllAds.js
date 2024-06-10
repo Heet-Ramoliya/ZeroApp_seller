@@ -24,6 +24,8 @@ import Icons from 'react-native-vector-icons/Feather';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect} from '@react-navigation/native';
+import messaging from '@react-native-firebase/messaging';
+import {configurePushNotifications, sendPushNotification} from '../Notification/NotificationService';
 
 const AllAds = ({navigation, searchQuery}) => {
   const [allData, setAllData] = useState([]);
@@ -31,8 +33,43 @@ const AllAds = ({navigation, searchQuery}) => {
   const [userId, setUserId] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // const sendPushNotification = async () => {
+  //   try {
+  //     const Token = await messaging().getToken();
+
+  //     const response = await fetch(
+  //       'https://fcm.googleapis.com/v1/projects/zeroapp-66e9a/messages:send',
+  //       {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           Authorization:
+  //             'Bearer ya29.a0AXooCguVlUOy5qvvyhL11Z5qYkOzRSpdBVA0Z1UNSPZWidMi0zM9-gCy4BW4asbbrvOazOSFQqakT-SW7hiTD_rh5qWMycvh1thulQoq1Jte_IGrk7E3L1GdkDQvzcXnQYUV3UQKeNLFEooMVhjTB0zYnUKfSRiffYoMaCgYKAZkSARISFQHGX2MimBEy7zUENmfWsSztqCMRDw0171',
+  //         },
+  //         body: JSON.stringify({
+  //           message: {
+  //             token: Token,
+  //             notification: {
+  //               title: 'Successfully Add an item!!',
+  //               body: 'Body of Your Notification',
+  //             },
+  //           },
+  //         }),
+  //       },
+  //     );
+
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
+  //     console.log('Notification sent successfully:', await response.json());
+  //   } catch (error) {
+  //     console.error('Error sending notification:', error.message);
+  //   }
+  // };
+
   useEffect(() => {
     getUserIdFromStorage();
+    configurePushNotifications();
   }, []);
 
   useEffect(() => {
@@ -117,7 +154,8 @@ const AllAds = ({navigation, searchQuery}) => {
     await addDoc(collection(db, 'Favorites_Seller'), {
       ...item,
       UserId: userId,
-    }).then(() => {
+    }).then(async () => {
+      await sendPushNotification();
       console.log('Successfully added data into favorite collection');
     });
   };
@@ -152,11 +190,11 @@ const AllAds = ({navigation, searchQuery}) => {
     const isFavorite = favorites.includes(item.id);
 
     return (
-      <TouchableOpacity
-        onPress={() => {
-          navigation.navigate('AllAdsDetailsScreen', {item: item});
-        }}>
-        <View style={styles.card}>
+      <View style={styles.card}>
+        <TouchableOpacity
+          onPress={() => {
+            navigation.navigate('AllAdsDetailsScreen', {item: item});
+          }}>
           <View style={styles.mainContainer}>
             <View style={styles.imgContainer}>
               <Image
@@ -218,8 +256,8 @@ const AllAds = ({navigation, searchQuery}) => {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
     );
   };
 
