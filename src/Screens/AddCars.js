@@ -3,33 +3,48 @@ import {
   View,
   Text,
   ScrollView,
-  TextInput,
   FlatList,
   Image,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import {carDatas} from '../Constant/newAd';
+import {db} from '../Firebase/Config';
+import {addDoc, collection, getDocs, query, where} from 'firebase/firestore';
 import ImagePicker from 'react-native-image-crop-picker';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Icons from 'react-native-vector-icons/Entypo';
 import Textinput from '../Components/Textinput';
 import Button from '../Components/Button';
-import {db} from '../Firebase/Config';
-import {addDoc, collection} from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AddCars = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState(null);
-  const [selectedYear, setSelectedYear] = useState(null);
-  const [selectedModelCars, setSelectedModelCars] = useState([]);
-  const [selectedModel, setSelectedModel] = useState(null);
-  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [branddata, setBranddata] = useState([]);
+  const [brandName, setBrandName] = useState('');
+  const [year, setYear] = useState([]);
+  const [selectedYear, setSelectedYear] = useState('');
+  const [showYearSection, setShowYearSection] = useState(false);
+  const [modelData, setModelData] = useState([]);
+  const [selectedModelName, setSelectedModelName] = useState('');
+  const [selectedModelImage, setSelectedModelImage] = useState('');
+  const [showModelSection, setShowModelSection] = useState(false);
+  const [varientData, setVarientData] = useState([]);
+  const [showVarientSection, setShowVarientSection] = useState(false);
+  const [selectVarient, setSelecteVarient] = useState('');
   const [selectedCondition, setSelectedCondition] = useState(null);
-  const [selectedColor, setSelectedColor] = useState(null);
-  const [selectedCenter, setSelectedCenter] = useState(null);
+  const [colorData, setColorData] = useState([]);
+  const [showColorSection, setShowColorSection] = useState(false);
+  const [selectColor, setSelecteColor] = useState('');
+  const [registationCenterData, setRegistationCenterData] = useState([]);
+  const [showregistationCenterSection, setShowregistationCenterSection] =
+    useState(false);
+  const [selectregistationCenter, setSelecteregistationCenter] = useState('');
   const [selectedImage, setSelectedImage] = useState([]);
+  const [brandid, setBrandid] = useState('');
+  const [yearId, setYearId] = useState('');
+  const [modelId, setModelId] = useState('');
+  const [varientId, setVarientId] = useState('');
+  const [colorId, setColorId] = useState('');
+  const [RegistationCenterId, setRegistationCenterId] = useState('');
   const [title, setTitle] = useState(null);
   const [price, setPrice] = useState(null);
   const [userId, setUserId] = useState('');
@@ -41,17 +56,70 @@ const AddCars = () => {
     year: 'numeric',
   });
 
-  const groupedCars = carDatas.reduce((acc, car) => {
-    if (!acc[car.brand]) {
-      acc[car.brand] = [];
-    }
-    acc[car.brand].push(car);
-    return acc;
-  }, {});
+  if (
+    brandName &&
+    selectedYear &&
+    selectedModelName &&
+    selectedModelImage &&
+    selectVarient &&
+    selectedCondition &&
+    selectColor &&
+    selectregistationCenter &&
+    selectedImage &&
+    title &&
+    price
+  ) {
+    console.log('brandName ==> ', brandName);
+    console.log('selectedYear ==> ', selectedYear);
+    console.log('selectedModelName ==> ', selectedModelName);
+    console.log('selectedModelImage ==> ', selectedModelImage);
+    console.log('selectVarient ==> ', selectVarient);
+    console.log('selectedCondition ==> ', selectedCondition);
+    console.log('selectColor ==> ', selectColor);
+    console.log('selectregistationCenter ==> ', selectregistationCenter);
+    console.log('selectedImage ==> ', selectedImage);
+    console.log('title ==> ', title);
+    console.log('price ==> ', price);
+    console.log('------------------------------------------------');
+  }
+
+  useEffect(() => {
+    getBrandData();
+  }, []);
 
   useEffect(() => {
     getUserIdFromStorage();
   }, []);
+
+  useEffect(() => {
+    if (brandid) {
+      getYear(brandid);
+    }
+  }, [brandid]);
+
+  useEffect(() => {
+    if (brandid && yearId) {
+      getModel(brandid, yearId);
+    }
+  }, [brandid, yearId]);
+
+  useEffect(() => {
+    if (brandid && yearId && modelId) {
+      getVarient(brandid, yearId, modelId);
+    }
+  }, [brandid, yearId, modelId]);
+
+  useEffect(() => {
+    if (brandid && yearId && modelId && varientId) {
+      getColor(brandid, yearId, modelId, varientId);
+    }
+  }, [brandid, yearId, modelId, varientId]);
+
+  useEffect(() => {
+    if (brandid && yearId && modelId && varientId) {
+      getRegistationCenter(brandid, yearId, modelId, varientId);
+    }
+  }, [brandid, yearId, modelId, varientId]);
 
   const getUserIdFromStorage = async () => {
     try {
@@ -64,144 +132,244 @@ const AddCars = () => {
     }
   };
 
-  useEffect(() => {
-    if (selectedBrand) {
-      setSelectedYear(null);
-      setSelectedModel(null);
-      setSelectedVariant(null);
-      setSelectedCondition(null);
-      setSelectedColor(null);
-      const brandCars = groupedCars[selectedBrand];
-      setSelectedModelCars(brandCars.filter(car => car.year === selectedYear));
+  const getBrandData = async () => {
+    try {
+      const q = query(collection(db, 'CarsData'));
+      const docSnap = await getDocs(q);
+      let list = [];
+      docSnap.forEach(doc => {
+        list.push({...doc.data(), id: doc.id});
+      });
+      setBranddata(list);
+    } catch (error) {
+      console.error('Error fetching brand data: ', error);
     }
-  }, [selectedBrand]);
+  };
 
-  useEffect(() => {
-    if (selectedYear) {
-      setSelectedModel(null);
-      setSelectedVariant(null);
-      setSelectedCondition(null);
-      setSelectedColor(null);
-      setSelectedCenter(null);
-      setSelectedImage([]);
-      setTitle(null);
-      setPrice(null);
+  const getYear = async brandId => {
+    try {
+      const yeardata = query(collection(db, `CarsData/${brandId}/year`));
+      const docSnap = await getDocs(yeardata);
+      let list = [];
+      docSnap.forEach(doc => {
+        list.push({...doc.data(), id: doc.id});
+      });
+      setYear(list);
+      setShowYearSection(true);
+    } catch (error) {
+      console.error('Error fetching year data: ', error);
     }
-  }, [selectedYear]);
+  };
 
-  useEffect(() => {
-    if (selectedModel) {
-      setSelectedVariant(null);
-      setSelectedCondition(null);
-      setSelectedColor(null);
-      setSelectedCenter(null);
-      setSelectedImage([]);
-      setTitle(null);
-      setPrice(null);
+  const getModel = async (brandId, yearId) => {
+    try {
+      const modeldata = query(
+        collection(db, `CarsData/${brandId}/year/${yearId}/model`),
+      );
+      const docSnap = await getDocs(modeldata);
+      let list = [];
+      docSnap.forEach(doc => {
+        list.push({...doc.data(), id: doc.id});
+      });
+      setModelData(list);
+      setShowModelSection(true);
+    } catch (error) {
+      console.error('Error fetching year data: ', error);
     }
-  }, [selectedModel]);
+  };
 
-  useEffect(() => {
-    if (selectedBrand && selectedYear !== null) {
-      const brandCars = groupedCars[selectedBrand];
-      setSelectedModelCars(brandCars.filter(car => car.year === selectedYear));
+  const getVarient = async (brandId, yearId, modelId) => {
+    try {
+      const Varientdata = query(
+        collection(
+          db,
+          `CarsData/${brandId}/year/${yearId}/model/${modelId}/varient`,
+        ),
+      );
+      const docSnap = await getDocs(Varientdata);
+      let list = [];
+      docSnap.forEach(doc => {
+        list.push({...doc.data(), id: doc.id});
+      });
+      setVarientData(list);
+      setShowVarientSection(true);
+    } catch (error) {
+      console.error('Error fetching year data: ', error);
     }
-  }, [selectedYear]);
+  };
 
-  const renderBrand = brand => {
+  const getColor = async (brandId, yearId, modelId, varientId) => {
+    try {
+      const Colordata = query(
+        collection(
+          db,
+          `CarsData/${brandId}/year/${yearId}/model/${modelId}/varient/${varientId}/color`,
+        ),
+      );
+      const docSnap = await getDocs(Colordata);
+      let list = [];
+      docSnap.forEach(doc => {
+        list.push({...doc.data(), id: doc.id});
+      });
+      setColorData(list);
+      setShowColorSection(true);
+    } catch (error) {
+      console.error('Error fetching year data: ', error);
+    }
+  };
+
+  const getRegistationCenter = async (brandId, yearId, modelId, varientId) => {
+    try {
+      const RegistrationCenterdata = query(
+        collection(
+          db,
+          `CarsData/${brandId}/year/${yearId}/model/${modelId}/varient/${varientId}/RegistrationCenter`,
+        ),
+      );
+      const docSnap = await getDocs(RegistrationCenterdata);
+      let list = [];
+      docSnap.forEach(doc => {
+        list.push({...doc.data(), id: doc.id});
+      });
+      setRegistationCenterData(list);
+      setShowregistationCenterSection(true);
+    } catch (error) {
+      console.error('Error fetching year data: ', error);
+    }
+  };
+
+  const renderBrand = ({item}) => {
+    const isSelected = brandid === item.id;
     return (
       <TouchableOpacity
-        key={brand}
-        style={[
-          styles.brandContainer,
-          {
-            backgroundColor:
-              selectedBrand === brand ? '#20abeb' : 'transparent',
-          },
-        ]}
-        onPress={() => setSelectedBrand(brand)}>
-        <Image
-          source={{uri: groupedCars[brand][0].logo}}
-          style={styles.brandImage}
-          resizeMode="contain"
-        />
+        onPress={() => {
+          setBrandName(item.brand);
+          setBrandid(item.id);
+        }}>
+        <View
+          style={{
+            padding: 8,
+            marginRight: 10,
+            backgroundColor: isSelected ? '#20abeb' : 'white',
+            borderRadius: 100,
+          }}>
+          <Image
+            source={{uri: item.brandLogo}}
+            resizeMode="contain"
+            style={{
+              width: 60,
+              height: 60,
+              overflow: 'hidden',
+            }}
+          />
+        </View>
       </TouchableOpacity>
     );
   };
 
   const renderYear = ({item}) => {
-    const isSelected = selectedYear === item;
+    const isSelected = yearId === item.id;
     return (
       <TouchableOpacity
-        onPress={() => setSelectedYear(isSelected ? null : item)}
-        style={[
-          styles.yearContainer,
-          {
+        onPress={() => {
+          setSelectedYear(item.year);
+          setYearId(item.id);
+        }}>
+        <View
+          style={{
+            padding: 8,
+            marginRight: 10,
             backgroundColor: isSelected ? '#20abeb' : 'white',
-          },
-        ]}>
-        <Text
-          style={[styles.yearText, {color: isSelected ? 'white' : 'black'}]}>
-          {item}
-        </Text>
+            borderRadius: 10,
+            marginLeft: 10,
+            marginTop: 5,
+            elevation: 4,
+          }}>
+          <Text
+            style={{
+              color: isSelected ? 'white' : 'black',
+              fontSize: 18,
+              padding: 6,
+            }}>
+            {item.year}
+          </Text>
+        </View>
       </TouchableOpacity>
     );
   };
 
   const renderModel = ({item}) => {
-    const isSelected =
-      selectedModel &&
-      selectedModel.model === item.model &&
-      selectedModel.model_image === item.model_image;
+    const isSelected = modelId === item.id;
     return (
       <TouchableOpacity
-        onPress={() =>
-          setSelectedModel(
-            isSelected
-              ? null
-              : {
-                  model: item.model,
-                  model_image: item.model_image,
-                  variants: item.variants,
-                  Colors: item.color,
-                  RegistationCenter: item.registration_Center,
-                },
-          )
-        }
-        style={[
-          styles.modelContainer,
-          {
+        onPress={() => {
+          setModelId(item.id);
+          setSelectedModelName(item.name);
+          setSelectedModelImage(item.image);
+        }}>
+        <View
+          style={{
+            padding: 8,
+            marginRight: 10,
             backgroundColor: isSelected ? '#20abeb' : 'white',
-          },
-        ]}>
-        <Image
-          source={{uri: item.model_image}}
-          style={{height: 50, width: 50}}
-          resizeMode={'contain'}
-        />
-        <Text
-          style={[styles.modelText, {color: isSelected ? 'white' : 'black'}]}>
-          {item.model}
-        </Text>
+            borderRadius: 10,
+            marginLeft: 10,
+            marginTop: 5,
+            elevation: 4,
+          }}>
+          <Image
+            source={{uri: item.image}}
+            resizeMode="contain"
+            style={{
+              width: 120,
+              height: 120,
+              overflow: 'hidden',
+              padding: 8,
+            }}
+          />
+          <View style={{}}>
+            <Text
+              style={{
+                color: isSelected ? 'white' : 'black',
+                fontSize: 18,
+                padding: 6,
+                textAlign: 'center',
+              }}>
+              {item.name}
+            </Text>
+          </View>
+        </View>
       </TouchableOpacity>
     );
   };
 
-  const renderVariant = ({item}) => {
-    const isSelected = selectedVariant === item;
+  const renderVarient = ({item}) => {
+    const isSelected = varientId === item.id;
     return (
       <TouchableOpacity
-        onPress={() => setSelectedVariant(isSelected ? null : item)}
-        style={[
-          styles.variantContainer,
-          {
+        onPress={() => {
+          setVarientId(item.id);
+          setSelecteVarient(item.varient);
+        }}>
+        <View
+          style={{
+            padding: 8,
+            marginRight: 10,
             backgroundColor: isSelected ? '#20abeb' : 'white',
-          },
-        ]}>
-        <Text
-          style={[styles.variantText, {color: isSelected ? 'white' : 'black'}]}>
-          {item}
-        </Text>
+            borderRadius: 10,
+            marginLeft: 10,
+            marginTop: 5,
+            elevation: 4,
+          }}>
+          <Text
+            style={{
+              color: isSelected ? 'white' : 'black',
+              fontSize: 18,
+              padding: 6,
+            }}>
+            {item.varient}
+          </Text>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -236,39 +404,63 @@ const AddCars = () => {
   };
 
   const renderColor = ({item}) => {
-    const isSelected = selectedColor === item;
+    const isSelected = colorId === item.id;
     return (
       <TouchableOpacity
-        onPress={() => setSelectedColor(isSelected ? null : item)}
-        style={[
-          styles.variantContainer,
-          {
+        onPress={() => {
+          setColorId(item.id);
+          setSelecteColor(item.color);
+        }}>
+        <View
+          style={{
+            padding: 8,
+            marginRight: 10,
             backgroundColor: isSelected ? '#20abeb' : 'white',
-          },
-        ]}>
-        <Text
-          style={[styles.variantText, {color: isSelected ? 'white' : 'black'}]}>
-          {item}
-        </Text>
+            borderRadius: 10,
+            marginLeft: 10,
+            marginTop: 5,
+            elevation: 4,
+          }}>
+          <Text
+            style={{
+              color: isSelected ? 'white' : 'black',
+              fontSize: 18,
+              padding: 6,
+            }}>
+            {item.color}
+          </Text>
+        </View>
       </TouchableOpacity>
     );
   };
 
-  const renderCenter = ({item}) => {
-    const isSelected = selectedCenter === item;
+  const renderRegistationCenter = ({item}) => {
+    const isSelected = RegistationCenterId === item.id;
     return (
       <TouchableOpacity
-        onPress={() => setSelectedCenter(isSelected ? null : item)}
-        style={[
-          styles.variantContainer,
-          {
+        onPress={() => {
+          setRegistationCenterId(item.id);
+          setSelecteregistationCenter(item.name);
+        }}>
+        <View
+          style={{
+            padding: 8,
+            marginRight: 10,
             backgroundColor: isSelected ? '#20abeb' : 'white',
-          },
-        ]}>
-        <Text
-          style={[styles.variantText, {color: isSelected ? 'white' : 'black'}]}>
-          {item}
-        </Text>
+            borderRadius: 10,
+            marginLeft: 10,
+            marginTop: 5,
+            elevation: 4,
+          }}>
+          <Text
+            style={{
+              color: isSelected ? 'white' : 'black',
+              fontSize: 18,
+              padding: 6,
+            }}>
+            {item.name}
+          </Text>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -298,14 +490,14 @@ const AddCars = () => {
   const saveData = async () => {
     try {
       const docData = {
-        Brand: selectedBrand,
+        Brand: brandName,
         Year: selectedYear,
-        ModelName: selectedModel.model,
-        ModelImage: selectedModel.model_image,
-        Variant: selectedVariant,
+        ModelName: selectedModelName,
+        ModelImage: selectedModelImage,
+        Variant: selectVarient,
         Carcondition: selectedCondition,
-        Color: selectedColor,
-        RegistationCenter: selectedCenter,
+        Color: selectColor,
+        RegistationCenter: selectregistationCenter,
         CarPhotos: selectedImage,
         Title: title,
         Price: price,
@@ -323,14 +515,14 @@ const AddCars = () => {
   const addDataIntoDraft = async () => {
     try {
       const docData = {
-        Brand: selectedBrand,
+        Brand: brandName,
         Year: selectedYear,
-        ModelName: selectedModel.model,
-        ModelImage: selectedModel.model_image,
-        Variant: selectedVariant,
+        ModelName: selectedModelName,
+        ModelImage: selectedModelImage,
+        Variant: selectVarient,
         Carcondition: selectedCondition,
-        Color: selectedColor,
-        RegistationCenter: selectedCenter,
+        Color: selectColor,
+        RegistationCenter: selectregistationCenter,
         CarPhotos: selectedImage,
         Title: title,
         Price: price,
@@ -348,124 +540,157 @@ const AddCars = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={{flex: 1}}>
-        {/* Heading */}
-        {/* <View style={styles.heading}>
-          <Text style={styles.headingText}>Car brands</Text>
-        </View> */}
-
-        {/* SearchBar */}
-        {/* <View style={styles.searchBar}>
-          <Icon name="search" size={30} color="#20abeb" />
-          <TextInput
-            placeholder="Search car brand"
-            style={styles.input}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View> */}
-
         {/* Popular Brands */}
         <View style={styles.brandsContainer}>
           <Text style={styles.subHeading}>Here's some Popular Brands</Text>
           <FlatList
-            data={Object.keys(groupedCars)}
-            renderItem={({item}) => renderBrand(item)}
+            data={branddata}
+            renderItem={renderBrand}
             horizontal={true}
             showsHorizontalScrollIndicator={false}
-            keyExtractor={item => item}
+            keyExtractor={item => item.id.toString()}
           />
         </View>
 
-        {/* Year */}
-        {selectedBrand && (
-          <View style={styles.yearsContainer}>
-            <Text style={styles.subHeading}>Years</Text>
+        {/* Display Years Only After Brand Selection */}
+        {showYearSection && (
+          <>
+            <Text
+              style={{
+                fontWeight: '500',
+                fontSize: 18,
+                marginBottom: 10,
+                color: 'black',
+                marginTop: 10,
+              }}>
+              Years
+            </Text>
             <FlatList
-              data={
-                selectedBrand
-                  ? [
-                      ...new Set(
-                        groupedCars[selectedBrand].map(car => car.year),
-                      ),
-                    ]
-                  : []
-              }
+              data={year}
               renderItem={renderYear}
               horizontal={true}
               showsHorizontalScrollIndicator={false}
               keyExtractor={(item, index) => index.toString()}
             />
-          </View>
+          </>
         )}
 
-        {/* Model details */}
-        {selectedBrand && selectedYear && (
-          <View style={{marginTop: 20}}>
-            <Text style={{fontSize: 16, fontWeight: '600', color: 'black'}}>
+        {/* show all model of car */}
+        {showYearSection && showModelSection && selectedYear && (
+          <>
+            <Text
+              style={{
+                fontWeight: '500',
+                fontSize: 18,
+                marginBottom: 10,
+                color: 'black',
+                marginTop: 25,
+              }}>
               Model details
             </Text>
-            <View style={{marginTop: 15}}>
-              <Text>
-                Here's some Popular {selectedBrand} {selectedYear} models
-              </Text>
-              <FlatList
-                data={selectedModelCars}
-                renderItem={renderModel}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(item, index) => index.toString()}
-              />
-            </View>
-          </View>
-        )}
-
-        {/* variant */}
-        {selectedBrand && selectedYear && selectedModel && (
-          <View style={{marginTop: 25}}>
-            <Text style={{fontWeight: '500'}}>
-              Select a variant for the {selectedModel.model} {selectedYear}{' '}
-              model
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '400',
+                color: 'black',
+                textAlign: 'justify',
+                marginBottom: 10,
+              }}>
+              Here's some Popular {brandName} {selectedYear}
             </Text>
             <FlatList
-              data={selectedModel.variants}
-              renderItem={renderVariant}
+              data={modelData}
+              renderItem={renderModel}
               horizontal={true}
               showsHorizontalScrollIndicator={false}
               keyExtractor={(item, index) => index.toString()}
             />
-          </View>
-        )}
-
-        {/* Car condition */}
-        {selectedBrand && selectedYear && selectedModel && selectedVariant && (
-          <>
-            <View style={{marginTop: 20}}>
-              <Text style={{fontWeight: '500'}}>Specify the car condition</Text>
-            </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-around',
-                marginTop: 10,
-              }}>
-              {renderCondition('New Car')}
-              {renderCondition('Old Car')}
-            </View>
           </>
         )}
 
-        {/* choose color */}
-        {selectedBrand &&
+        {/* select model all varients */}
+        {showYearSection &&
+          showModelSection &&
+          showVarientSection &&
           selectedYear &&
-          selectedModel &&
-          selectedVariant &&
-          selectedCondition && (
+          selectedModelName &&
+          selectedModelImage && (
+            <>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: '400',
+                  color: 'black',
+                  textAlign: 'justify',
+                  marginBottom: 10,
+                  marginTop: 20,
+                }}>
+                Select a varient for the {selectedModelName} {selectedYear}{' '}
+                model
+              </Text>
+              <FlatList
+                data={varientData}
+                renderItem={renderVarient}
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(item, index) => index.toString()}
+              />
+            </>
+          )}
+
+        {/* Car condition */}
+        {showYearSection &&
+          showModelSection &&
+          showVarientSection &&
+          showVarientSection &&
+          selectedYear &&
+          selectedModelName &&
+          selectedModelImage &&
+          selectVarient && (
             <>
               <View style={{marginTop: 20}}>
-                <Text style={{fontWeight: '500'}}>Choose the color</Text>
+                <Text style={{fontWeight: '500'}}>
+                  Specify the car condition
+                </Text>
               </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'flex-start',
+                  marginTop: 10,
+                  marginHorizontal: 10,
+                }}>
+                {renderCondition('New Car')}
+                {renderCondition('Old Car')}
+              </View>
+            </>
+          )}
+
+        {/* select car color */}
+        {showYearSection &&
+          showModelSection &&
+          showVarientSection &&
+          showVarientSection &&
+          showColorSection &&
+          selectedYear &&
+          selectedModelName &&
+          selectedModelImage &&
+          selectVarient &&
+          selectedCondition && (
+            <>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: '400',
+                  color: 'black',
+                  textAlign: 'justify',
+                  marginBottom: 10,
+                  marginTop: 20,
+                }}>
+                Choose the color
+              </Text>
               <FlatList
-                data={selectedModel.Colors}
+                data={colorData}
                 renderItem={renderColor}
                 horizontal={true}
                 showsHorizontalScrollIndicator={false}
@@ -474,22 +699,34 @@ const AddCars = () => {
             </>
           )}
 
-        {/* Registation Center */}
-        {selectedBrand &&
+        {/* select Registaton center */}
+        {showYearSection &&
+          showModelSection &&
+          showVarientSection &&
+          showVarientSection &&
+          showColorSection &&
+          showregistationCenterSection &&
           selectedYear &&
-          selectedModel &&
-          selectedVariant &&
+          selectedModelName &&
+          selectedModelImage &&
+          selectVarient &&
           selectedCondition &&
-          selectedColor && (
+          selectColor && (
             <>
-              <View style={{marginTop: 20}}>
-                <Text style={{fontWeight: '500'}}>
-                  Select the registration center
-                </Text>
-              </View>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: '400',
+                  color: 'black',
+                  textAlign: 'justify',
+                  marginBottom: 10,
+                  marginTop: 20,
+                }}>
+                Select the registration center
+              </Text>
               <FlatList
-                data={selectedModel.RegistationCenter}
-                renderItem={renderCenter}
+                data={registationCenterData}
+                renderItem={renderRegistationCenter}
                 horizontal={true}
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={(item, index) => index.toString()}
@@ -497,14 +734,15 @@ const AddCars = () => {
             </>
           )}
 
-        {/* uplode Car image */}
-        {selectedBrand &&
-          selectedYear &&
-          selectedModel &&
-          selectedVariant &&
+        {/* image picker */}
+        {selectedYear &&
+          selectedModelName &&
+          selectedModelImage &&
+          selectVarient &&
           selectedCondition &&
-          selectedColor &&
-          selectedCenter && (
+          selectColor &&
+          selectedCondition &&
+          selectregistationCenter && (
             <>
               <View style={{marginTop: 25}}>
                 <Text style={{fontWeight: '700', color: 'black', fontSize: 16}}>
@@ -589,76 +827,78 @@ const AddCars = () => {
                   </View>
                 </TouchableOpacity>
               </View>
+            </>
+          )}
 
-              {/* Ad details */}
-              {selectedBrand &&
-                selectedYear &&
-                selectedModel &&
-                selectedVariant &&
-                selectedCondition &&
-                selectedColor &&
-                selectedImage && (
-                  <>
-                    <View style={{marginTop: 25}}>
-                      <Text
-                        style={{
-                          fontWeight: '500',
-                          fontSize: 16,
-                          color: 'black',
-                        }}>
-                        Ad details
-                      </Text>
-                    </View>
-                    <View style={{marginBottom: 5, marginTop: 15}}>
-                      <Text style={{fontWeight: '600'}}>
-                        Give your add a title
-                      </Text>
-                    </View>
-                    <Textinput
-                      placeholder="Enter title"
-                      value={title}
-                      onChangeText={text => setTitle(text)}
-                    />
-                    <View style={{marginBottom: 5, marginTop: 10}}>
-                      <Text style={{fontWeight: '600'}}>Asking price</Text>
-                    </View>
-                    <Textinput
-                      placeholder="Enter price"
-                      value={price}
-                      onChangeText={text => setPrice(text)}
-                    />
-                  </>
-                )}
+        {/* Ad details */}
+        {selectedYear &&
+          selectedModelName &&
+          selectedModelImage &&
+          selectVarient &&
+          selectedCondition &&
+          selectColor &&
+          selectedCondition &&
+          selectregistationCenter &&
+          selectedImage && (
+            <>
+              <View style={{marginTop: 25}}>
+                <Text
+                  style={{
+                    fontWeight: '500',
+                    fontSize: 16,
+                    color: 'black',
+                  }}>
+                  Ad details
+                </Text>
+              </View>
+              <View style={{marginBottom: 5, marginTop: 15}}>
+                <Text style={{fontWeight: '600'}}>Give your add a title</Text>
+              </View>
+              <Textinput
+                placeholder="Enter title"
+                value={title}
+                onChangeText={text => setTitle(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Asking price</Text>
+              </View>
+              <Textinput
+                placeholder="Enter price"
+                value={price}
+                onChangeText={text => setPrice(text)}
+              />
+            </>
+          )}
+
+        {/* Buttons */}
+        {selectedYear &&
+          selectedModelName &&
+          selectedModelImage &&
+          selectVarient &&
+          selectedCondition &&
+          selectColor &&
+          selectedCondition &&
+          selectregistationCenter &&
+          selectedImage && (
+            <>
+              <TouchableOpacity onPress={saveData}>
+                <Button
+                  name="Review and Publish"
+                  backgroundColor="#01a0e9"
+                  color="white"
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={addDataIntoDraft}>
+                <Button
+                  name="Save as Draft"
+                  backgroundColor="#d5eefb"
+                  color="#0084cc"
+                />
+              </TouchableOpacity>
             </>
           )}
       </View>
-
-      {/* Buttons */}
-      {selectedBrand &&
-        selectedYear &&
-        selectedModel &&
-        selectedVariant &&
-        selectedCondition &&
-        selectedColor &&
-        selectedImage && (
-          <>
-            <TouchableOpacity onPress={saveData}>
-              <Button
-                name="Review and Publish"
-                backgroundColor="#01a0e9"
-                color="white"
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={addDataIntoDraft}>
-              <Button
-                name="Save as Draft"
-                backgroundColor="#d5eefb"
-                color="#0084cc"
-              />
-            </TouchableOpacity>
-          </>
-        )}
     </ScrollView>
   );
 };
@@ -668,79 +908,14 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 20,
   },
-  heading: {
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  headingText: {
-    color: 'black',
-    fontWeight: '500',
-    fontSize: 18,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    backgroundColor: '#e7e9ee',
-    borderRadius: 15,
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-  },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-  },
   brandsContainer: {
-    marginTop: 20,
+    marginTop: 0,
   },
   subHeading: {
     fontWeight: '500',
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 10,
     color: 'black',
-  },
-  brandContainer: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginRight: 10,
-  },
-  brandImage: {
-    height: 50,
-    width: 50,
-  },
-  yearsContainer: {
-    marginTop: 20,
-  },
-  yearContainer: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginRight: 10,
-  },
-  yearText: {
-    fontWeight: '600',
-  },
-  modelContainer: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginRight: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  modelText: {
-    fontWeight: '600',
-  },
-  variantContainer: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginRight: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  variantText: {
-    fontWeight: '600',
   },
   conditionContainer: {
     flexDirection: 'row',
@@ -748,6 +923,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 5,
     borderRadius: 10,
+    marginRight: 20,
   },
   conditionImage: {
     height: 50,
