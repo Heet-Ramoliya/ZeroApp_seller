@@ -16,10 +16,12 @@ import Icons from 'react-native-vector-icons/Entypo';
 import Textinput from '../Components/Textinput';
 import Button from '../Components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {Checkbox} from 'react-native-paper';
 
-const AddCars = () => {
+const AddCars = ({navigation}) => {
   const [branddata, setBranddata] = useState([]);
   const [brandName, setBrandName] = useState('');
+  const [brandLogo, setBrandLogo] = useState('');
   const [year, setYear] = useState([]);
   const [selectedYear, setSelectedYear] = useState('');
   const [showYearSection, setShowYearSection] = useState(false);
@@ -39,6 +41,8 @@ const AddCars = () => {
     useState(false);
   const [selectregistationCenter, setSelecteregistationCenter] = useState('');
   const [selectedImage, setSelectedImage] = useState([]);
+  const [Interiordata, setInteriordata] = useState([]);
+  const [Exteriordata, setExteriordata] = useState([]);
   const [brandid, setBrandid] = useState('');
   const [yearId, setYearId] = useState('');
   const [modelId, setModelId] = useState('');
@@ -48,6 +52,8 @@ const AddCars = () => {
   const [title, setTitle] = useState(null);
   const [price, setPrice] = useState(null);
   const [userId, setUserId] = useState('');
+  const [selectedInteriorOptions, setSelectedInteriorOptions] = useState([]);
+  const [selectedExteriorOptions, setselectedExteriorOptions] = useState([]);
 
   let currentDate = new Date();
   let formattedDate = currentDate.toLocaleDateString('en-IN', {
@@ -66,6 +72,8 @@ const AddCars = () => {
     selectColor &&
     selectregistationCenter &&
     selectedImage &&
+    selectedInteriorOptions &&
+    selectedExteriorOptions &&
     title &&
     price
   ) {
@@ -78,6 +86,8 @@ const AddCars = () => {
     console.log('selectColor ==> ', selectColor);
     console.log('selectregistationCenter ==> ', selectregistationCenter);
     console.log('selectedImage ==> ', selectedImage);
+    console.log('selectedInteriorOptions ==> ', selectedInteriorOptions);
+    console.log('selectedExteriorOptions ==> ', selectedExteriorOptions);
     console.log('title ==> ', title);
     console.log('price ==> ', price);
     console.log('------------------------------------------------');
@@ -85,6 +95,8 @@ const AddCars = () => {
 
   useEffect(() => {
     getBrandData();
+    getInterior();
+    getExterior();
   }, []);
 
   useEffect(() => {
@@ -238,6 +250,34 @@ const AddCars = () => {
     }
   };
 
+  const getInterior = async () => {
+    try {
+      const q = query(collection(db, 'Interior_Options'));
+      const docSnap = await getDocs(q);
+      let list = [];
+      docSnap.forEach(doc => {
+        list.push({...doc.data()});
+      });
+      setInteriordata(list);
+    } catch (error) {
+      console.error('Error fetching brand data: ', error);
+    }
+  };
+
+  const getExterior = async () => {
+    try {
+      const q = query(collection(db, 'Exterior_Options'));
+      const docSnap = await getDocs(q);
+      let list = [];
+      docSnap.forEach(doc => {
+        list.push({...doc.data()});
+      });
+      setExteriordata(list);
+    } catch (error) {
+      console.error('Error fetching brand data: ', error);
+    }
+  };
+
   const renderBrand = ({item}) => {
     const isSelected = brandid === item.id;
     return (
@@ -245,6 +285,7 @@ const AddCars = () => {
         onPress={() => {
           setBrandName(item.brand);
           setBrandid(item.id);
+          setBrandLogo(item.brandLogo);
         }}>
         <View
           style={{
@@ -465,6 +506,60 @@ const AddCars = () => {
     );
   };
 
+  const renderInterior = ({item}) => {
+    const isSelected =
+      Array.isArray(selectedInteriorOptions) &&
+      selectedInteriorOptions.includes(item.name);
+    return (
+      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+        <Text>{item.name}</Text>
+        <Checkbox
+          color="#01a0e9"
+          status={isSelected ? 'checked' : 'unchecked'}
+          onPress={() => {
+            setSelectedInteriorOptions(prevState => {
+              if (!Array.isArray(prevState)) {
+                prevState = [];
+              }
+              if (isSelected) {
+                return prevState.filter(option => option !== item.name);
+              } else {
+                return [...prevState, item.name];
+              }
+            });
+          }}
+        />
+      </View>
+    );
+  };
+
+  const renderExterior = ({item}) => {
+    const isSelected =
+      Array.isArray(selectedExteriorOptions) &&
+      selectedExteriorOptions.includes(item.name);
+    return (
+      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+        <Text>{item.name}</Text>
+        <Checkbox
+          color="#01a0e9"
+          status={isSelected ? 'checked' : 'unchecked'}
+          onPress={() => {
+            setselectedExteriorOptions(prevState => {
+              if (!Array.isArray(prevState)) {
+                prevState = [];
+              }
+              if (isSelected) {
+                return prevState.filter(option => option !== item.name);
+              } else {
+                return [...prevState, item.name];
+              }
+            });
+          }}
+        />
+      </View>
+    );
+  };
+
   const uploadImage = () => {
     ImagePicker.openPicker({
       width: 150,
@@ -491,6 +586,7 @@ const AddCars = () => {
     try {
       const docData = {
         Brand: brandName,
+        BrandLogo: brandLogo,
         Year: selectedYear,
         ModelName: selectedModelName,
         ModelImage: selectedModelImage,
@@ -499,14 +595,32 @@ const AddCars = () => {
         Color: selectColor,
         RegistationCenter: selectregistationCenter,
         CarPhotos: selectedImage,
+        Interior: selectedInteriorOptions,
+        Exterior: selectedExteriorOptions,
         Title: title,
         Price: price,
         postedDate: formattedDate,
         UserId: userId,
       };
 
-      await addDoc(collection(db, 'CreateAD'), docData);
-      console.log('Data inserted successfully!');
+      await addDoc(collection(db, 'CreateAD'), docData).then(() => {
+        navigation.navigate('Dashboard');
+        setBrandName('');
+        setBrandLogo('');
+        setSelectedYear('');
+        setSelectedModelName('');
+        setSelectedModelImage('');
+        setSelecteVarient('');
+        setSelectedCondition(null);
+        setSelecteColor('');
+        setSelecteregistationCenter('');
+        setSelectedImage([]);
+        setSelectedInteriorOptions([]);
+        setselectedExteriorOptions([]);
+        setTitle('');
+        setPrice('');
+        console.log('Data inserted successfully!');
+      });
     } catch (error) {
       console.error('Error ==> ', error);
     }
@@ -516,6 +630,7 @@ const AddCars = () => {
     try {
       const docData = {
         Brand: brandName,
+        BrandLogo: brandLogo,
         Year: selectedYear,
         ModelName: selectedModelName,
         ModelImage: selectedModelImage,
@@ -524,14 +639,32 @@ const AddCars = () => {
         Color: selectColor,
         RegistationCenter: selectregistationCenter,
         CarPhotos: selectedImage,
+        Interior: selectedInteriorOptions,
+        Exterior: selectedExteriorOptions,
         Title: title,
         Price: price,
         postedDate: formattedDate,
         UserId: userId,
       };
 
-      await addDoc(collection(db, 'Seller_Draft'), docData);
-      console.log('Data inserted into Seller_Draft successfully!');
+      await addDoc(collection(db, 'Seller_Draft'), docData).then(() => {
+        navigation.navigate('Dashboard');
+        setBrandName('');
+        setBrandLogo('');
+        setSelectedYear('');
+        setSelectedModelName('');
+        setSelectedModelImage('');
+        setSelecteVarient('');
+        setSelectedCondition(null);
+        setSelecteColor('');
+        setSelecteregistationCenter('');
+        setSelectedImage([]);
+        setSelectedInteriorOptions([]);
+        setselectedExteriorOptions([]);
+        setTitle('');
+        setPrice('');
+        console.log('Data inserted into Seller_Draft successfully!');
+      });
     } catch (error) {
       console.error('Error ==> ', error);
     }
@@ -827,6 +960,66 @@ const AddCars = () => {
                   </View>
                 </TouchableOpacity>
               </View>
+            </>
+          )}
+
+        {/* Interior options */}
+        {selectedYear &&
+          selectedModelName &&
+          selectedModelImage &&
+          selectVarient &&
+          selectedCondition &&
+          selectColor &&
+          selectedCondition &&
+          selectregistationCenter &&
+          selectedImage && (
+            <>
+              <View style={{marginTop: 25}}>
+                <Text
+                  style={{
+                    fontWeight: '500',
+                    fontSize: 17,
+                    color: 'black',
+                    marginBottom: 10,
+                  }}>
+                  Interior options
+                </Text>
+              </View>
+              <FlatList
+                data={Interiordata}
+                renderItem={renderInterior}
+                keyExtractor={(item, index) => index.toString()}
+              />
+            </>
+          )}
+
+        {/* Exterior options */}
+        {selectedYear &&
+          selectedModelName &&
+          selectedModelImage &&
+          selectVarient &&
+          selectedCondition &&
+          selectColor &&
+          selectedCondition &&
+          selectregistationCenter &&
+          selectedImage && (
+            <>
+              <View style={{marginTop: 25}}>
+                <Text
+                  style={{
+                    fontWeight: '500',
+                    fontSize: 17,
+                    color: 'black',
+                    marginBottom: 10,
+                  }}>
+                  Exterior options
+                </Text>
+              </View>
+              <FlatList
+                data={Exteriordata}
+                renderItem={renderExterior}
+                keyExtractor={(item, index) => index.toString()}
+              />
             </>
           )}
 

@@ -63,7 +63,7 @@ const Drafts = ({navigation, searchQuery}) => {
     return (
       <TouchableOpacity
         onPress={() => {
-          navigation.navigate('DraftDetailsScreen', {data: item});
+          navigation.navigate('DraftDetailsScreen', {item: item});
         }}>
         <View style={styles.card}>
           <View style={styles.mainContainer}>
