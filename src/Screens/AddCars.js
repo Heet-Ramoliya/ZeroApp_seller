@@ -9,7 +9,14 @@ import {
   StyleSheet,
 } from 'react-native';
 import {db} from '../Firebase/Config';
-import {addDoc, collection, getDocs, query, where} from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  query,
+  where,
+} from 'firebase/firestore';
 import ImagePicker from 'react-native-image-crop-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Icons from 'react-native-vector-icons/Entypo';
@@ -601,12 +608,12 @@ const AddCars = ({navigation}) => {
         Price: price,
         postedDate: formattedDate,
         UserId: userId,
+        Status: 'Active',
       };
 
       await addDoc(collection(db, 'CreateAD'), docData).then(() => {
         navigation.navigate('Dashboard');
-        setBrandName('');
-        setBrandLogo('');
+
         setSelectedYear('');
         setSelectedModelName('');
         setSelectedModelImage('');
@@ -649,8 +656,6 @@ const AddCars = ({navigation}) => {
 
       await addDoc(collection(db, 'Seller_Draft'), docData).then(() => {
         navigation.navigate('Dashboard');
-        setBrandName('');
-        setBrandLogo('');
         setSelectedYear('');
         setSelectedModelName('');
         setSelectedModelImage('');

@@ -9,7 +9,15 @@ import {
   StyleSheet,
 } from 'react-native';
 import {db} from '../Firebase/Config';
-import {addDoc, collection, getDocs, query, where} from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 import ImagePicker from 'react-native-image-crop-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Icons from 'react-native-vector-icons/Entypo';
@@ -692,7 +700,7 @@ const ActiveDetailsScreen = ({navigation, route}) => {
       };
 
       await addDoc(collection(db, 'Seller_Active'), docData).then(() => {
-        navigation.navigate('Dashboard');
+        navigation.navigate('AllAds');
         setBrandName('');
         setBrandLogo('');
         setSelectedYear('');
@@ -735,7 +743,9 @@ const ActiveDetailsScreen = ({navigation, route}) => {
         UserId: userId,
       };
 
-      await addDoc(collection(db, 'Seller_InActive'), docData).then(() => {
+      await addDoc(collection(db, 'Seller_InActive'), {
+        docData,
+      }).then(() => {
         navigation.navigate('Dashboard');
         setBrandName('');
         setBrandLogo('');

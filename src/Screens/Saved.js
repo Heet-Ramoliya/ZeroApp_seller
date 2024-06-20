@@ -20,6 +20,7 @@ import {
   query,
   where,
   onSnapshot,
+  getDocs,
 } from 'firebase/firestore';
 import {db} from '../Firebase/Config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -39,6 +40,7 @@ const Saved = () => {
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedCondition, setSelectedCondition] = useState('');
   const [originalFavorites, setOriginalFavorites] = useState([]);
+  const [branddata, setBranddata] = useState([]);
 
   useEffect(() => {
     if (searchQuery === '') {
@@ -55,7 +57,22 @@ const Saved = () => {
 
   useEffect(() => {
     getData();
+    getBrandData();
   }, [userId]);
+
+  const getBrandData = async () => {
+    try {
+      const q = query(collection(db, 'CarsData'));
+      const docSnap = await getDocs(q);
+      let list = [];
+      docSnap.forEach(doc => {
+        list.push({...doc.data(), id: doc.id});
+      });
+      setBranddata(list);
+    } catch (error) {
+      console.error('Error fetching brand data: ', error);
+    }
+  };
 
   const getData = () => {
     if (userId) {
@@ -208,20 +225,6 @@ const Saved = () => {
     return selectedFilter === filter ? 'circle-slice-8' : 'circle-outline';
   };
 
-  const removeDuplicateCars = carList => {
-    const uniqueCars = [];
-    const uniqueKeys = new Set();
-
-    carList.forEach(car => {
-      if (!uniqueKeys.has(car.logo)) {
-        uniqueCars.push(car);
-        uniqueKeys.add(car.logo);
-      }
-    });
-
-    return uniqueCars;
-  };
-
   const handleBrandSelection = brand => {
     const isSelected = selectedBrands.includes(brand);
     if (isSelected) {
@@ -253,7 +256,11 @@ const Saved = () => {
           marginHorizontal: 5,
           marginBottom: 10,
         }}>
-        <Image source={{uri: item.logo}} style={{height: 50, width: 50}} />
+        <Image
+          source={{uri: item.brandLogo}}
+          style={{height: 50, width: 50}}
+          resizeMode="contain"
+        />
       </TouchableOpacity>
     );
   };
@@ -541,7 +548,7 @@ const Saved = () => {
               <View>
                 <View style={{marginTop: 10}}>
                   <FlatList
-                    data={removeDuplicateCars(carDatas)}
+                    data={branddata}
                     renderItem={renderBrand}
                     keyExtractor={(item, index) => index.toString()}
                     horizontal={true}

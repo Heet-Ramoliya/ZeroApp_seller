@@ -692,7 +692,7 @@ const ActiveDetailsScreen = ({navigation, route}) => {
       };
 
       await addDoc(collection(db, 'CreateAD'), docData).then(() => {
-        navigation.navigate('Dashboard');
+        navigation.navigate('AllAds');
         setBrandName('');
         setBrandLogo('');
         setSelectedYear('');

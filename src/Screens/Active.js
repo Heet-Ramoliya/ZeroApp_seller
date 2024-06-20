@@ -42,7 +42,7 @@ const Active = ({navigation, searchQuery}) => {
         querySnapshot => {
           const List = [];
           querySnapshot.forEach(doc => {
-            List.push({...doc.data()});
+            List.push({...doc.data(), id: doc.id});
           });
           setActiveData(List);
         },

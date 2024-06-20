@@ -2,15 +2,15 @@ import React, {useEffect} from 'react';
 import StackNavigator from './src/Navigations/StackNavigator';
 import {
   requestUserPermission,
-  getFcmToken,
-  notificationListener,
+  GetFCMToken,
+  PushNotification,
 } from './src/Notification/firebase.js';
 
 const App = () => {
   useEffect(() => {
     requestUserPermission();
-    getFcmToken();
-    notificationListener();
+    GetFCMToken();
+    PushNotification();
   }, []);
 
   return <StackNavigator />;

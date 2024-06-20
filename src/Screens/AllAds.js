@@ -24,11 +24,7 @@ import Icons from 'react-native-vector-icons/Feather';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect} from '@react-navigation/native';
-import messaging from '@react-native-firebase/messaging';
-import {
-  configurePushNotifications,
-  sendPushNotification,
-} from '../Notification/NotificationService';
+import {sendPushNotifications} from '../Notification/NotificationService';
 
 const AllAds = ({navigation, searchQuery}) => {
   const [allData, setAllData] = useState([]);
@@ -38,7 +34,6 @@ const AllAds = ({navigation, searchQuery}) => {
 
   useEffect(() => {
     getUserIdFromStorage();
-    // configurePushNotifications();
   }, []);
 
   useEffect(() => {
@@ -124,7 +119,7 @@ const AllAds = ({navigation, searchQuery}) => {
       ...item,
       UserId: userId,
     }).then(async () => {
-      // await sendPushNotification();
+      await sendPushNotifications();
       console.log('Successfully added data into favorite collection');
     });
   };
@@ -194,7 +189,7 @@ const AllAds = ({navigation, searchQuery}) => {
                     marginRight: 5,
                   }}>
                   <Text style={{color: 'white', padding: 4, fontSize: 12}}>
-                    Promoted
+                    Draft
                   </Text>
                 </View>
                 <View
@@ -204,7 +199,7 @@ const AllAds = ({navigation, searchQuery}) => {
                     marginRight: 5,
                   }}>
                   <Text style={{color: 'white', padding: 4, fontSize: 12}}>
-                    Draft
+                    Inactive
                   </Text>
                 </View>
                 <View style={{justifyContent: 'center', marginRight: 5}}>

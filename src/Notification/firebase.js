@@ -1,57 +1,43 @@
 import messaging from '@react-native-firebase/messaging';
+import {PermissionsAndroid} from 'react-native';
 
-export const requestUserPermission = async () => {
+export const requestUserPermission = () => {
+  PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+  GetFCMToken();
+};
+
+export const GetFCMToken = async () => {
   try {
-    const authStatus = await messaging().requestPermission();
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-    if (enabled) {
-      console.log('Notification permission granted:', authStatus);
+    const fcmtoken = await messaging().getToken();
+    if (fcmtoken) {
+      console.log('New Token ==>', fcmtoken);
     }
   } catch (error) {
-    console.error('Failed to request notification permission:', error);
+    console.log('error in fcmtoken ==>', error);
   }
 };
 
-export const getFcmToken = async () => {
-  try {
-    const fcmToken = await messaging().getToken();
-    if (fcmToken) {
-      console.log('Your Firebase Token is:', fcmToken);
-    } else {
-      console.log('Failed to get FCM token');
-    }
-  } catch (error) {
-    console.error('Failed to retrieve FCM token:', error);
-  }
-};
+export const PushNotification = () => {
+  messaging().onNotificationOpenedApp(remoteMessage => {
+    console.log(
+      'Notification caused app to open for background state ==>',
+      remoteMessage.notification,
+    );
+  });
 
-export const notificationListener = () => {
-  try {
-    messaging()
-      .getInitialNotification()
-      .then(remoteMessage => {
-        if (remoteMessage) {
-          console.log(
-            'Notification caused app to open from quit state:',
-            remoteMessage.notification,
-          );
-        }
-      });
-
-    messaging().onNotificationOpenedApp(remoteMessage => {
-      console.log(
-        'Notification caused app to open from background state:',
-        remoteMessage.notification,
-      );
+  messaging()
+    .getInitialNotification()
+    .then(remoteMessage => {
+      if (remoteMessage) {
+        console.log(
+          'notification caused app to open from quit state ==>',
+          remoteMessage.notification,
+        );
+      }
     });
 
-    messaging().setBackgroundMessageHandler(async remoteMessage => {
-      console.log('Message handled in the background!', remoteMessage);
-    });
-  } catch (error) {
-    console.error('Failed to set up notification listeners:', error);
-  }
+  messaging().onMessage(async remoteMessage => {
+    remoteMessage.notification,
+      console.log('notification on forground state....', remoteMessage);
+  });
 };

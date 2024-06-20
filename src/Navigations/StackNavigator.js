@@ -169,7 +169,6 @@ const StackNavigator = () => {
           component={ActiveDetailsScreen}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -185,7 +184,6 @@ const StackNavigator = () => {
           component={DraftDetailsScreen}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -209,7 +207,6 @@ const StackNavigator = () => {
           component={AllAdsDetailsScreen}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
           }}
         />
       </Stack.Navigator>
