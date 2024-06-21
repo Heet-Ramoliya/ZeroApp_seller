@@ -33,7 +33,7 @@ const Active = ({navigation, searchQuery}) => {
   useEffect(() => {
     if (userId) {
       const q = query(
-        collection(db, 'CreateAD'),
+        collection(db, 'Seller_Active'),
         where('UserId', '==', userId),
       );
 
@@ -56,7 +56,7 @@ const Active = ({navigation, searchQuery}) => {
   }, [userId]);
 
   const filteredData = activeData.filter(ad =>
-    ad.Title.toLowerCase().includes(searchQuery.toLowerCase()),
+    ad.ModelName.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const renderItem = ({item}) => {
@@ -75,7 +75,7 @@ const Active = ({navigation, searchQuery}) => {
               />
             </View>
             <View style={styles.infoContainer}>
-              <Text style={styles.title}>{item.Title}</Text>
+              <Text style={styles.title}>{item.ModelName}</Text>
               <Text style={styles.price}>${item.Price}</Text>
               <Text style={styles.date}>Posted on: {item.postedDate}</Text>
             </View>

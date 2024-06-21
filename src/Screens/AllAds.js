@@ -119,7 +119,6 @@ const AllAds = ({navigation, searchQuery}) => {
       ...item,
       UserId: userId,
     }).then(async () => {
-      await sendPushNotifications();
       console.log('Successfully added data into favorite collection');
     });
   };
@@ -147,7 +146,7 @@ const AllAds = ({navigation, searchQuery}) => {
   };
 
   const filteredData = allData.filter(ad =>
-    ad.Title.toLowerCase().includes(searchQuery.toLowerCase()),
+    ad.ModelName.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const renderItem = ({item}) => {
@@ -168,7 +167,7 @@ const AllAds = ({navigation, searchQuery}) => {
               />
             </View>
             <View style={styles.infoContainer}>
-              <Text style={styles.title}>{item.Title}</Text>
+              <Text style={styles.title}>{item.ModelName}</Text>
               <Text style={styles.price}>${item.Price}</Text>
               <Text style={styles.date}>Posted on: {item.postedDate}</Text>
               <View style={{flexDirection: 'row'}}>
@@ -178,28 +177,8 @@ const AllAds = ({navigation, searchQuery}) => {
                     borderRadius: 10,
                     marginRight: 5,
                   }}>
-                  <Text style={{color: 'white', padding: 4, fontSize: 12}}>
-                    Active
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    backgroundColor: '#00a0e9',
-                    borderRadius: 10,
-                    marginRight: 5,
-                  }}>
-                  <Text style={{color: 'white', padding: 4, fontSize: 12}}>
-                    Draft
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    backgroundColor: '#00a0e9',
-                    borderRadius: 10,
-                    marginRight: 5,
-                  }}>
-                  <Text style={{color: 'white', padding: 4, fontSize: 12}}>
-                    Inactive
+                  <Text style={{color: 'white', padding: 8, fontSize: 14}}>
+                    {item.Status}
                   </Text>
                 </View>
                 <View style={{justifyContent: 'center', marginRight: 5}}>

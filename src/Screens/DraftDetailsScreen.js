@@ -55,6 +55,11 @@ const ActiveDetailsScreen = ({navigation, route}) => {
   const [RegistationCenterId, setRegistationCenterId] = useState('');
   const [title, setTitle] = useState(item.Title);
   const [price, setPrice] = useState(item.Price);
+  const [name, setName] = useState(item.Name);
+  const [city, setCity] = useState(item.City);
+  const [state, setState] = useState(item.State);
+  const [country, setCountry] = useState(item.country);
+  const [contactNumber, setContactNumber] = useState(item.ContactNumber);
   const [userId, setUserId] = useState('');
   const [selectedInteriorOptions, setSelectedInteriorOptions] = useState(
     item.Interior || [],
@@ -62,6 +67,15 @@ const ActiveDetailsScreen = ({navigation, route}) => {
   const [selectedExteriorOptions, setselectedExteriorOptions] = useState(
     item.Exterior || [],
   );
+  const [checked, setChecked] = useState(item.Checked);
+  const [businessInfo, setBusinessInfo] = useState([]);
+  const [businessDesc, setBusinessDesc] = useState([]);
+  const [businessShowRoomLocation, setbusinessShowRoomLocation] = useState([]);
+  const [businessWorkingHours, setBusinessWorkingHours] = useState([]);
+
+  const toggleCheckbox = () => {
+    setChecked(!checked);
+  };
 
   let currentDate = new Date();
   let formattedDate = currentDate.toLocaleDateString('en-IN', {
@@ -126,6 +140,32 @@ const ActiveDetailsScreen = ({navigation, route}) => {
       console.error('Error retrieving userId from AsyncStorage:', error);
     }
   };
+
+  const fetchDataByUserId = async (collectionName, setDataCallback) => {
+    if (userId) {
+      try {
+        const q = query(
+          collection(db, collectionName),
+          where('UserId', '==', userId),
+        );
+        const docSnap = await getDocs(q);
+        const list = docSnap.docs.map(doc => doc.data());
+        setDataCallback(list);
+      } catch (error) {
+        console.error(`Error fetching ${collectionName} data: `, error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchDataByUserId('Seller_BusinessInfo', setBusinessInfo);
+    fetchDataByUserId('Seller_BusinessDesc', setBusinessDesc);
+    fetchDataByUserId(
+      'Seller_BusinessShowRoomLocation',
+      setbusinessShowRoomLocation,
+    );
+    fetchDataByUserId('Seller_BusinessWorkingHours', setBusinessWorkingHours);
+  }, [userId]);
 
   const getBrandData = async () => {
     try {
@@ -672,7 +712,7 @@ const ActiveDetailsScreen = ({navigation, route}) => {
 
   const saveData = async () => {
     try {
-      const docData = {
+      let docData = {
         Brand: brandName,
         BrandLogo: brandLogo,
         Year: selectedYear,
@@ -689,24 +729,27 @@ const ActiveDetailsScreen = ({navigation, route}) => {
         Price: price,
         postedDate: formattedDate,
         UserId: userId,
+        Status: 'Draft',
+        Name: name,
+        City: city,
+        State: state,
+        country: country,
+        ContactNumber: contactNumber,
+        Checked: checked,
       };
 
+      if (checked) {
+        docData = {
+          ...docData,
+          BusinessInfo: businessInfo,
+          BusinessDesc: businessDesc,
+          BusinessShowRoomLocation: businessShowRoomLocation,
+          BusinessWorkingHours: businessWorkingHours,
+        };
+      }
+
       await addDoc(collection(db, 'CreateAD'), docData).then(() => {
-        navigation.navigate('AllAds');
-        setBrandName('');
-        setBrandLogo('');
-        setSelectedYear('');
-        setSelectedModelName('');
-        setSelectedModelImage('');
-        setSelecteVarient('');
-        setSelectedCondition(null);
-        setSelecteColor('');
-        setSelecteregistationCenter('');
-        setSelectedImage([]);
-        setSelectedInteriorOptions([]);
-        setselectedExteriorOptions([]);
-        setTitle('');
-        setPrice('');
+        navigation.navigate('BottomTabNavigator');
         console.log('Data inserted successfully!');
       });
     } catch (error) {
@@ -730,7 +773,7 @@ const ActiveDetailsScreen = ({navigation, route}) => {
         </View>
 
         {/* Display Years Only After Brand Selection */}
-        {brandLogo && brandName && (
+        {brandid && (
           <>
             <Text
               style={{
@@ -753,7 +796,7 @@ const ActiveDetailsScreen = ({navigation, route}) => {
         )}
 
         {/* show all model of car */}
-        {brandLogo && brandName && selectedYear && (
+        {brandid && yearId && (
           <>
             <Text
               style={{
@@ -786,33 +829,28 @@ const ActiveDetailsScreen = ({navigation, route}) => {
         )}
 
         {/* select model all varients */}
-        {brandLogo &&
-          brandName &&
-          selectedYear &&
-          selectedModelImage &&
-          selectedModelName && (
-            <>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '400',
-                  color: 'black',
-                  textAlign: 'justify',
-                  marginBottom: 10,
-                  marginTop: 20,
-                }}>
-                Select a varient for the {selectedModelName} {selectedYear}{' '}
-                model
-              </Text>
-              <FlatList
-                data={varientData}
-                renderItem={renderVarient}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(item, index) => index.toString()}
-              />
-            </>
-          )}
+        {brandid && yearId && modelId && (
+          <>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '400',
+                color: 'black',
+                textAlign: 'justify',
+                marginBottom: 10,
+                marginTop: 20,
+              }}>
+              Select a varient for the {selectedModelName} {selectedYear} model
+            </Text>
+            <FlatList
+              data={varientData}
+              renderItem={renderVarient}
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item, index) => index.toString()}
+            />
+          </>
+        )}
 
         {/* Car condition */}
         {brandid && yearId && modelId && varientId && (
@@ -1068,6 +1106,109 @@ const ActiveDetailsScreen = ({navigation, route}) => {
                 value={price}
                 onChangeText={text => setPrice(text)}
               />
+            </>
+          )}
+
+        {/* Contact details */}
+        {brandid &&
+          yearId &&
+          modelId &&
+          varientId &&
+          colorId &&
+          RegistationCenterId && (
+            <>
+              <View style={{marginTop: 25}}>
+                <Text
+                  style={{
+                    fontWeight: '500',
+                    fontSize: 16,
+                    color: 'black',
+                  }}>
+                  Contact details
+                </Text>
+              </View>
+              <View style={{marginBottom: 5, marginTop: 15}}>
+                <Text style={{fontWeight: '600'}}>Give your add a Name</Text>
+              </View>
+              <Textinput
+                placeholder="Enter Name"
+                value={name}
+                onChangeText={text => setName(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Give your add a city</Text>
+              </View>
+              <Textinput
+                placeholder="Enter city"
+                value={city}
+                onChangeText={text => setCity(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Give your add a state</Text>
+              </View>
+              <Textinput
+                placeholder="Enter state"
+                value={state}
+                onChangeText={text => setState(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Give your add a country</Text>
+              </View>
+              <Textinput
+                placeholder="Enter country"
+                value={country}
+                onChangeText={text => setCountry(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>
+                  Give your add a ContactNumber
+                </Text>
+              </View>
+              <Textinput
+                placeholder="Enter Contactnumber"
+                value={contactNumber}
+                onChangeText={text => setContactNumber(text)}
+              />
+            </>
+          )}
+
+        {/* Business Profile details */}
+        {brandid &&
+          yearId &&
+          modelId &&
+          varientId &&
+          colorId &&
+          RegistationCenterId && (
+            <>
+              <View style={{marginTop: 25}}>
+                <Text
+                  style={{
+                    fontWeight: '500',
+                    fontSize: 16,
+                    color: 'black',
+                  }}>
+                  Business details
+                </Text>
+              </View>
+              <View
+                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '500',
+                    marginTop: 10,
+                    marginBottom: 20,
+                  }}>
+                  Add Business details
+                </Text>
+                <Checkbox
+                  color="#01a0e9"
+                  status={checked ? 'checked' : 'unchecked'}
+                  onPress={() => {
+                    toggleCheckbox();
+                  }}
+                />
+              </View>
             </>
           )}
 

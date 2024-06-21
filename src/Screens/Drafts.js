@@ -56,7 +56,7 @@ const Drafts = ({navigation, searchQuery}) => {
   }, [userId]);
 
   const filteredData = draftData.filter(ad =>
-    ad.Title.toLowerCase().includes(searchQuery.toLowerCase()),
+    ad.ModelName.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const renderItem = ({item}) => {
@@ -75,7 +75,7 @@ const Drafts = ({navigation, searchQuery}) => {
               />
             </View>
             <View style={styles.infoContainer}>
-              <Text style={styles.title}>{item.Title}</Text>
+              <Text style={styles.title}>{item.ModelName}</Text>
               <Text style={styles.price}>${item.Price}</Text>
               <Text style={styles.date}>Posted on: {item.postedDate}</Text>
             </View>

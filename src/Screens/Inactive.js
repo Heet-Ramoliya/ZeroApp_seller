@@ -71,7 +71,7 @@ const Inactive = ({navigation, searchQuery}) => {
             />
           </View>
           <View style={styles.infoContainer}>
-            <Text style={styles.title}>{item.Title}</Text>
+            <Text style={styles.title}>{item.ModelName}</Text>
             <Text style={styles.price}>${item.Price}</Text>
             <Text style={styles.date}>Posted on: {item.postedDate}</Text>
           </View>

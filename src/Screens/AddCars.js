@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useId} from 'react';
 import {
   View,
   Text,
@@ -61,6 +61,20 @@ const AddCars = ({navigation}) => {
   const [userId, setUserId] = useState('');
   const [selectedInteriorOptions, setSelectedInteriorOptions] = useState([]);
   const [selectedExteriorOptions, setselectedExteriorOptions] = useState([]);
+  const [name, setName] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [country, setCountry] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [checked, setChecked] = useState(false);
+  const [businessInfo, setBusinessInfo] = useState([]);
+  const [businessDesc, setBusinessDesc] = useState([]);
+  const [businessShowRoomLocation, setbusinessShowRoomLocation] = useState([]);
+  const [businessWorkingHours, setBusinessWorkingHours] = useState([]);
+
+  const toggleCheckbox = () => {
+    setChecked(!checked);
+  };
 
   let currentDate = new Date();
   let formattedDate = currentDate.toLocaleDateString('en-IN', {
@@ -69,45 +83,25 @@ const AddCars = ({navigation}) => {
     year: 'numeric',
   });
 
-  if (
-    brandName &&
-    selectedYear &&
-    selectedModelName &&
-    selectedModelImage &&
-    selectVarient &&
-    selectedCondition &&
-    selectColor &&
-    selectregistationCenter &&
-    selectedImage &&
-    selectedInteriorOptions &&
-    selectedExteriorOptions &&
-    title &&
-    price
-  ) {
-    console.log('brandName ==> ', brandName);
-    console.log('selectedYear ==> ', selectedYear);
-    console.log('selectedModelName ==> ', selectedModelName);
-    console.log('selectedModelImage ==> ', selectedModelImage);
-    console.log('selectVarient ==> ', selectVarient);
-    console.log('selectedCondition ==> ', selectedCondition);
-    console.log('selectColor ==> ', selectColor);
-    console.log('selectregistationCenter ==> ', selectregistationCenter);
-    console.log('selectedImage ==> ', selectedImage);
-    console.log('selectedInteriorOptions ==> ', selectedInteriorOptions);
-    console.log('selectedExteriorOptions ==> ', selectedExteriorOptions);
-    console.log('title ==> ', title);
-    console.log('price ==> ', price);
-    console.log('------------------------------------------------');
-  }
+  useEffect(() => {
+    const getUserIdFromStorage = async () => {
+      try {
+        const id = await AsyncStorage.getItem('UserId');
+        if (id !== null) {
+          setUserId(id);
+        }
+      } catch (error) {
+        console.error('Error retrieving userId from AsyncStorage:', error);
+      }
+    };
+
+    getUserIdFromStorage();
+  }, [userId]);
 
   useEffect(() => {
     getBrandData();
     getInterior();
     getExterior();
-  }, []);
-
-  useEffect(() => {
-    getUserIdFromStorage();
   }, []);
 
   useEffect(() => {
@@ -140,16 +134,31 @@ const AddCars = ({navigation}) => {
     }
   }, [brandid, yearId, modelId, varientId]);
 
-  const getUserIdFromStorage = async () => {
-    try {
-      const id = await AsyncStorage.getItem('UserId');
-      if (id !== null) {
-        setUserId(id);
+  const fetchDataByUserId = async (collectionName, setDataCallback) => {
+    if (userId) {
+      try {
+        const q = query(
+          collection(db, collectionName),
+          where('UserId', '==', userId),
+        );
+        const docSnap = await getDocs(q);
+        const list = docSnap.docs.map(doc => doc.data());
+        setDataCallback(list);
+      } catch (error) {
+        console.error(`Error fetching ${collectionName} data: `, error);
       }
-    } catch (error) {
-      console.error('Error retrieving userId from AsyncStorage:', error);
     }
   };
+
+  useEffect(() => {
+    fetchDataByUserId('Seller_BusinessInfo', setBusinessInfo);
+    fetchDataByUserId('Seller_BusinessDesc', setBusinessDesc);
+    fetchDataByUserId(
+      'Seller_BusinessShowRoomLocation',
+      setbusinessShowRoomLocation,
+    );
+    fetchDataByUserId('Seller_BusinessWorkingHours', setBusinessWorkingHours);
+  }, [userId]);
 
   const getBrandData = async () => {
     try {
@@ -589,9 +598,53 @@ const AddCars = ({navigation}) => {
     setSelectedImage(newImages);
   };
 
+  // const saveData = async () => {
+  //   try {
+  //     const docData = {
+  //       Brand: brandName,
+  //       BrandLogo: brandLogo,
+  //       Year: selectedYear,
+  //       ModelName: selectedModelName,
+  //       ModelImage: selectedModelImage,
+  //       Variant: selectVarient,
+  //       Carcondition: selectedCondition,
+  //       Color: selectColor,
+  //       RegistationCenter: selectregistationCenter,
+  //       CarPhotos: selectedImage,
+  //       Interior: selectedInteriorOptions,
+  //       Exterior: selectedExteriorOptions,
+  //       Title: title,
+  //       Price: price,
+  //       postedDate: formattedDate,
+  //       UserId: userId,
+  //       Status: 'Active',
+  //       Name: name,
+  //       City: city,
+  //       State: state,
+  //       country: country,
+  //       ContactNumber: contactNumber,
+  //     };
+
+  //     if (checked) {
+  //       businessData = {
+  //         BusinessInfo: businessInfo,
+  //         BusinessDesc: businessDesc,
+  //         BusinessShowRoomLocation: businessShowRoomLocation,
+  //         BusinessWorkingHours: businessWorkingHours,
+  //       };
+  //     }
+
+  //     await addDoc(collection(db, 'CreateAD'), docData).then(() => {
+  //       console.log('Data inserted successfully!');
+  //     });
+  //   } catch (error) {
+  //     console.error('Error ==> ', error);
+  //   }
+  // };
+
   const saveData = async () => {
     try {
-      const docData = {
+      let docData = {
         Brand: brandName,
         BrandLogo: brandLogo,
         Year: selectedYear,
@@ -609,33 +662,34 @@ const AddCars = ({navigation}) => {
         postedDate: formattedDate,
         UserId: userId,
         Status: 'Active',
+        Name: name,
+        City: city,
+        State: state,
+        country: country,
+        ContactNumber: contactNumber,
+        Checked: checked,
       };
 
-      await addDoc(collection(db, 'CreateAD'), docData).then(() => {
-        navigation.navigate('Dashboard');
+      if (checked) {
+        docData = {
+          ...docData,
+          BusinessInfo: businessInfo,
+          BusinessDesc: businessDesc,
+          BusinessShowRoomLocation: businessShowRoomLocation,
+          BusinessWorkingHours: businessWorkingHours,
+        };
+      }
 
-        setSelectedYear('');
-        setSelectedModelName('');
-        setSelectedModelImage('');
-        setSelecteVarient('');
-        setSelectedCondition(null);
-        setSelecteColor('');
-        setSelecteregistationCenter('');
-        setSelectedImage([]);
-        setSelectedInteriorOptions([]);
-        setselectedExteriorOptions([]);
-        setTitle('');
-        setPrice('');
-        console.log('Data inserted successfully!');
-      });
+      await addDoc(collection(db, 'CreateAD'), docData);
+      console.log('Data inserted successfully!');
     } catch (error) {
-      console.error('Error ==> ', error);
+      console.error('Error saving data:', error);
     }
   };
 
-  const addDataIntoDraft = async () => {
+  const addDataIntoActive = async () => {
     try {
-      const docData = {
+      let docData = {
         Brand: brandName,
         BrandLogo: brandLogo,
         Year: selectedYear,
@@ -652,22 +706,74 @@ const AddCars = ({navigation}) => {
         Price: price,
         postedDate: formattedDate,
         UserId: userId,
+        Status: 'Active',
+        Name: name,
+        City: city,
+        State: state,
+        country: country,
+        ContactNumber: contactNumber,
+        Checked: checked,
       };
+
+      if (checked) {
+        docData = {
+          ...docData,
+          BusinessInfo: businessInfo,
+          BusinessDesc: businessDesc,
+          BusinessShowRoomLocation: businessShowRoomLocation,
+          BusinessWorkingHours: businessWorkingHours,
+        };
+      }
+
+      await addDoc(collection(db, 'Seller_Active'), docData).then(() => {
+        navigation.navigate('Dashboard');
+        console.log('Data inserted into Seller_Active successfully!');
+      });
+    } catch (error) {
+      console.error('Error ==> ', error);
+    }
+  };
+
+  const addDataIntoDraft = async () => {
+    try {
+      let docData = {
+        Brand: brandName,
+        BrandLogo: brandLogo,
+        Year: selectedYear,
+        ModelName: selectedModelName,
+        ModelImage: selectedModelImage,
+        Variant: selectVarient,
+        Carcondition: selectedCondition,
+        Color: selectColor,
+        RegistationCenter: selectregistationCenter,
+        CarPhotos: selectedImage,
+        Interior: selectedInteriorOptions,
+        Exterior: selectedExteriorOptions,
+        Title: title,
+        Price: price,
+        postedDate: formattedDate,
+        UserId: userId,
+        Status: 'Draft',
+        Name: name,
+        City: city,
+        State: state,
+        country: country,
+        ContactNumber: contactNumber,
+        Checked: checked,
+      };
+
+      if (checked) {
+        docData = {
+          ...docData,
+          BusinessInfo: businessInfo,
+          BusinessDesc: businessDesc,
+          BusinessShowRoomLocation: businessShowRoomLocation,
+          BusinessWorkingHours: businessWorkingHours,
+        };
+      }
 
       await addDoc(collection(db, 'Seller_Draft'), docData).then(() => {
         navigation.navigate('Dashboard');
-        setSelectedYear('');
-        setSelectedModelName('');
-        setSelectedModelImage('');
-        setSelecteVarient('');
-        setSelectedCondition(null);
-        setSelecteColor('');
-        setSelecteregistationCenter('');
-        setSelectedImage([]);
-        setSelectedInteriorOptions([]);
-        setselectedExteriorOptions([]);
-        setTitle('');
-        setPrice('');
         console.log('Data inserted into Seller_Draft successfully!');
       });
     } catch (error) {
@@ -1068,6 +1174,115 @@ const AddCars = ({navigation}) => {
             </>
           )}
 
+        {/* Contact details */}
+        {selectedYear &&
+          selectedModelName &&
+          selectedModelImage &&
+          selectVarient &&
+          selectedCondition &&
+          selectColor &&
+          selectedCondition &&
+          selectregistationCenter &&
+          selectedImage && (
+            <>
+              <View style={{marginTop: 25}}>
+                <Text
+                  style={{
+                    fontWeight: '500',
+                    fontSize: 16,
+                    color: 'black',
+                  }}>
+                  Contact details
+                </Text>
+              </View>
+              <View style={{marginBottom: 5, marginTop: 15}}>
+                <Text style={{fontWeight: '600'}}>Give your add a Name</Text>
+              </View>
+              <Textinput
+                placeholder="Enter Name"
+                value={name}
+                onChangeText={text => setName(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Give your add a city</Text>
+              </View>
+              <Textinput
+                placeholder="Enter city"
+                value={city}
+                onChangeText={text => setCity(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Give your add a state</Text>
+              </View>
+              <Textinput
+                placeholder="Enter state"
+                value={state}
+                onChangeText={text => setState(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Give your add a country</Text>
+              </View>
+              <Textinput
+                placeholder="Enter country"
+                value={country}
+                onChangeText={text => setCountry(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>
+                  Give your add a ContactNumber
+                </Text>
+              </View>
+              <Textinput
+                placeholder="Enter Contactnumber"
+                value={contactNumber}
+                onChangeText={text => setContactNumber(text)}
+              />
+            </>
+          )}
+
+        {/* Business Profile details */}
+        {selectedYear &&
+          selectedModelName &&
+          selectedModelImage &&
+          selectVarient &&
+          selectedCondition &&
+          selectColor &&
+          selectedCondition &&
+          selectregistationCenter &&
+          selectedImage && (
+            <>
+              <View style={{marginTop: 25}}>
+                <Text
+                  style={{
+                    fontWeight: '500',
+                    fontSize: 16,
+                    color: 'black',
+                  }}>
+                  Business details
+                </Text>
+              </View>
+              <View
+                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '500',
+                    marginTop: 10,
+                    marginBottom: 20,
+                  }}>
+                  Add Business details
+                </Text>
+                <Checkbox
+                  color="#01a0e9"
+                  status={checked ? 'checked' : 'unchecked'}
+                  onPress={() => {
+                    toggleCheckbox();
+                  }}
+                />
+              </View>
+            </>
+          )}
+
         {/* Buttons */}
         {selectedYear &&
           selectedModelName &&
@@ -1079,7 +1294,11 @@ const AddCars = ({navigation}) => {
           selectregistationCenter &&
           selectedImage && (
             <>
-              <TouchableOpacity onPress={saveData}>
+              <TouchableOpacity
+                onPress={() => {
+                  saveData();
+                  addDataIntoActive();
+                }}>
                 <Button
                   name="Review and Publish"
                   backgroundColor="#01a0e9"

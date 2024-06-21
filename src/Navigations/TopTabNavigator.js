@@ -183,7 +183,6 @@ export const TopTabNavigator = () => {
 
   useEffect(() => {
     getUserIdFromStorage();
-    getData();
   }, []);
 
   const getUserIdFromStorage = async () => {
@@ -198,25 +197,31 @@ export const TopTabNavigator = () => {
   };
 
   // All Ads
-  const getData = async () => {
-    try {
-      const q = query(collection(db, 'CreateAD'));
-      const docSnap = await getDocs(q);
-      let list = [];
-      docSnap.forEach(doc => {
-        list.push({...doc.data()});
-      });
-      setData(list);
-    } catch (error) {
-      console.error('Error fetching profile data: ', error);
-    }
-  };
+  useEffect(() => {
+    const q = query(collection(db, 'CreateAD'));
+
+    const unsubscribe = onSnapshot(
+      q,
+      querySnapshot => {
+        const List = [];
+        querySnapshot.forEach(doc => {
+          List.push({...doc.data()});
+        });
+        setData(List);
+      },
+      error => {
+        console.error('Error listening for changes:', error);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   // Active data
   useEffect(() => {
     if (userId) {
       const q = query(
-        collection(db, 'CreateAD'),
+        collection(db, 'Seller_Active'),
         where('UserId', '==', userId),
       );
 

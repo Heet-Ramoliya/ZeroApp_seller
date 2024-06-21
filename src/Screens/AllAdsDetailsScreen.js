@@ -55,6 +55,11 @@ const AllAdsDetailsScreen = ({route}) => {
   const [RegistationCenterId, setRegistationCenterId] = useState('');
   const [title, setTitle] = useState(item.Title);
   const [price, setPrice] = useState(item.Price);
+  const [name, setName] = useState(item.Name);
+  const [city, setCity] = useState(item.City);
+  const [state, setState] = useState(item.State);
+  const [country, setCountry] = useState(item.country);
+  const [contactNumber, setContactNumber] = useState(item.ContactNumber);
   const [userId, setUserId] = useState('');
   const [selectedInteriorOptions, setSelectedInteriorOptions] = useState(
     item.Interior || [],
@@ -62,6 +67,11 @@ const AllAdsDetailsScreen = ({route}) => {
   const [selectedExteriorOptions, setselectedExteriorOptions] = useState(
     item.Exterior || [],
   );
+  const [checked, setChecked] = useState(item.Checked);
+
+  const toggleCheckbox = () => {
+    setChecked(!checked);
+  };
 
   let currentDate = new Date();
   let formattedDate = currentDate.toLocaleDateString('en-IN', {
@@ -566,18 +576,18 @@ const AllAdsDetailsScreen = ({route}) => {
         <Checkbox
           color="#01a0e9"
           status={isSelected ? 'checked' : 'unchecked'}
-          onPress={() => {
-            setSelectedInteriorOptions(prevState => {
-              if (!Array.isArray(prevState)) {
-                prevState = [];
-              }
-              if (isSelected) {
-                return prevState.filter(option => option !== item.name);
-              } else {
-                return [...prevState, item.name];
-              }
-            });
-          }}
+          // onPress={() => {
+          //   setSelectedInteriorOptions(prevState => {
+          //     if (!Array.isArray(prevState)) {
+          //       prevState = [];
+          //     }
+          //     if (isSelected) {
+          //       return prevState.filter(option => option !== item.name);
+          //     } else {
+          //       return [...prevState, item.name];
+          //     }
+          //   });
+          // }}
         />
       </View>
     );
@@ -593,18 +603,18 @@ const AllAdsDetailsScreen = ({route}) => {
         <Checkbox
           color="#01a0e9"
           status={isSelected ? 'checked' : 'unchecked'}
-          onPress={() => {
-            setselectedExteriorOptions(prevState => {
-              if (!Array.isArray(prevState)) {
-                prevState = [];
-              }
-              if (isSelected) {
-                return prevState.filter(option => option !== item.name);
-              } else {
-                return [...prevState, item.name];
-              }
-            });
-          }}
+          // onPress={() => {
+          //   setselectedExteriorOptions(prevState => {
+          //     if (!Array.isArray(prevState)) {
+          //       prevState = [];
+          //     }
+          //     if (isSelected) {
+          //       return prevState.filter(option => option !== item.name);
+          //     } else {
+          //       return [...prevState, item.name];
+          //     }
+          //   });
+          // }}
         />
       </View>
     );
@@ -626,7 +636,7 @@ const AllAdsDetailsScreen = ({route}) => {
         </View>
 
         {/* Display Years Only After Brand Selection */}
-        {brandLogo && brandName && (
+        {brandid && (
           <>
             <Text
               style={{
@@ -649,7 +659,7 @@ const AllAdsDetailsScreen = ({route}) => {
         )}
 
         {/* show all model of car */}
-        {brandLogo && brandName && selectedYear && (
+        {brandid && yearId && (
           <>
             <Text
               style={{
@@ -682,33 +692,28 @@ const AllAdsDetailsScreen = ({route}) => {
         )}
 
         {/* select model all varients */}
-        {brandLogo &&
-          brandName &&
-          selectedYear &&
-          selectedModelImage &&
-          selectedModelName && (
-            <>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '400',
-                  color: 'black',
-                  textAlign: 'justify',
-                  marginBottom: 10,
-                  marginTop: 20,
-                }}>
-                Select a varient for the {selectedModelName} {selectedYear}{' '}
-                model
-              </Text>
-              <FlatList
-                data={varientData}
-                renderItem={renderVarient}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(item, index) => index.toString()}
-              />
-            </>
-          )}
+        {brandid && yearId && modelId && (
+          <>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '400',
+                color: 'black',
+                textAlign: 'justify',
+                marginBottom: 10,
+                marginTop: 20,
+              }}>
+              Select a varient for the {selectedModelName} {selectedYear} model
+            </Text>
+            <FlatList
+              data={varientData}
+              renderItem={renderVarient}
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item, index) => index.toString()}
+            />
+          </>
+        )}
 
         {/* Car condition */}
         {brandid && yearId && modelId && varientId && (
@@ -930,6 +935,109 @@ const AllAdsDetailsScreen = ({route}) => {
                 value={price}
                 onChangeText={text => setPrice(text)}
               />
+            </>
+          )}
+
+        {/* Contact details */}
+        {brandid &&
+          yearId &&
+          modelId &&
+          varientId &&
+          colorId &&
+          RegistationCenterId && (
+            <>
+              <View style={{marginTop: 25}}>
+                <Text
+                  style={{
+                    fontWeight: '500',
+                    fontSize: 16,
+                    color: 'black',
+                  }}>
+                  Contact details
+                </Text>
+              </View>
+              <View style={{marginBottom: 5, marginTop: 15}}>
+                <Text style={{fontWeight: '600'}}>Give your add a Name</Text>
+              </View>
+              <Textinput
+                placeholder="Enter Name"
+                value={name}
+                onChangeText={text => setName(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Give your add a city</Text>
+              </View>
+              <Textinput
+                placeholder="Enter city"
+                value={city}
+                onChangeText={text => setCity(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Give your add a state</Text>
+              </View>
+              <Textinput
+                placeholder="Enter state"
+                value={state}
+                onChangeText={text => setState(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Give your add a country</Text>
+              </View>
+              <Textinput
+                placeholder="Enter country"
+                value={country}
+                onChangeText={text => setCountry(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>
+                  Give your add a ContactNumber
+                </Text>
+              </View>
+              <Textinput
+                placeholder="Enter Contactnumber"
+                value={contactNumber}
+                onChangeText={text => setContactNumber(text)}
+              />
+            </>
+          )}
+
+        {/* Business Profile details */}
+        {brandid &&
+          yearId &&
+          modelId &&
+          varientId &&
+          colorId &&
+          RegistationCenterId && (
+            <>
+              <View style={{marginTop: 25}}>
+                <Text
+                  style={{
+                    fontWeight: '500',
+                    fontSize: 16,
+                    color: 'black',
+                  }}>
+                  Business details
+                </Text>
+              </View>
+              <View
+                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '500',
+                    marginTop: 10,
+                    marginBottom: 20,
+                  }}>
+                  Add Business details
+                </Text>
+                <Checkbox
+                  color="#01a0e9"
+                  status={checked ? 'checked' : 'unchecked'}
+                  // onPress={() => {
+                  //   toggleCheckbox();
+                  // }}
+                />
+              </View>
             </>
           )}
       </View>

@@ -12,8 +12,10 @@ import {db} from '../Firebase/Config';
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDocs,
+  onSnapshot,
   query,
   updateDoc,
   where,
@@ -29,6 +31,7 @@ import {Checkbox} from 'react-native-paper';
 const ActiveDetailsScreen = ({navigation, route}) => {
   const {item} = route.params;
 
+  const [createAdId, setCreateAdId] = useState('');
   const [branddata, setBranddata] = useState([]);
   const [brandName, setBrandName] = useState(item.Brand);
   const [brandLogo, setBrandLogo] = useState(item.BrandLogo);
@@ -63,6 +66,11 @@ const ActiveDetailsScreen = ({navigation, route}) => {
   const [RegistationCenterId, setRegistationCenterId] = useState('');
   const [title, setTitle] = useState(item.Title);
   const [price, setPrice] = useState(item.Price);
+  const [name, setName] = useState(item.Name);
+  const [city, setCity] = useState(item.City);
+  const [state, setState] = useState(item.State);
+  const [country, setCountry] = useState(item.country);
+  const [contactNumber, setContactNumber] = useState(item.ContactNumber);
   const [userId, setUserId] = useState('');
   const [selectedInteriorOptions, setSelectedInteriorOptions] = useState(
     item.Interior || [],
@@ -70,6 +78,15 @@ const ActiveDetailsScreen = ({navigation, route}) => {
   const [selectedExteriorOptions, setselectedExteriorOptions] = useState(
     item.Exterior || [],
   );
+  const [checked, setChecked] = useState(item.Checked);
+  const [businessInfo, setBusinessInfo] = useState([]);
+  const [businessDesc, setBusinessDesc] = useState([]);
+  const [businessShowRoomLocation, setbusinessShowRoomLocation] = useState([]);
+  const [businessWorkingHours, setBusinessWorkingHours] = useState([]);
+
+  const toggleCheckbox = () => {
+    setChecked(!checked);
+  };
 
   let currentDate = new Date();
   let formattedDate = currentDate.toLocaleDateString('en-IN', {
@@ -77,6 +94,56 @@ const ActiveDetailsScreen = ({navigation, route}) => {
     day: 'numeric',
     year: 'numeric',
   });
+
+  useEffect(() => {
+    const getUserIdFromStorage = async () => {
+      try {
+        const id = await AsyncStorage.getItem('UserId');
+        if (id !== null) {
+          setUserId(id);
+        }
+      } catch (error) {
+        console.error('Error retrieving userId from AsyncStorage:', error);
+      }
+    };
+
+    getUserIdFromStorage();
+  }, []);
+
+  useEffect(() => {
+    if (userId) {
+      const q = query(
+        collection(db, 'CreateAD'),
+        where('UserId', '==', item.UserId),
+        where('Brand', '==', item.Brand),
+        where('BrandLogo', '==', item.BrandLogo),
+        where('Carcondition', '==', item.Carcondition),
+        where('Color', '==', item.Color),
+        where('ModelImage', '==', item.ModelImage),
+        where('ModelName', '==', item.ModelName),
+        where('Price', '==', item.Price),
+        where('RegistationCenter', '==', item.RegistationCenter),
+        where('Title', '==', item.Title),
+        where('Variant', '==', item.Variant),
+        where('Year', '==', item.Year),
+        where('postedDate', '==', item.postedDate),
+      );
+
+      const unsubscribe = onSnapshot(
+        q,
+        querySnapshot => {
+          querySnapshot.forEach(doc => {
+            setCreateAdId(doc.id);
+          });
+        },
+        error => {
+          console.error('Error listening for changes:', error);
+        },
+      );
+
+      return () => unsubscribe();
+    }
+  }, [userId]);
 
   useEffect(() => {
     getBrandData();
@@ -120,20 +187,31 @@ const ActiveDetailsScreen = ({navigation, route}) => {
     }
   }, [brandid, yearId, modelId, varientId]);
 
-  useEffect(() => {
-    getUserIdFromStorage();
-  }, []);
-
-  const getUserIdFromStorage = async () => {
-    try {
-      const id = await AsyncStorage.getItem('UserId');
-      if (id !== null) {
-        setUserId(id);
+  const fetchDataByUserId = async (collectionName, setDataCallback) => {
+    if (userId) {
+      try {
+        const q = query(
+          collection(db, collectionName),
+          where('UserId', '==', userId),
+        );
+        const docSnap = await getDocs(q);
+        const list = docSnap.docs.map(doc => doc.data());
+        setDataCallback(list);
+      } catch (error) {
+        console.error(`Error fetching ${collectionName} data: `, error);
       }
-    } catch (error) {
-      console.error('Error retrieving userId from AsyncStorage:', error);
     }
   };
+
+  useEffect(() => {
+    fetchDataByUserId('Seller_BusinessInfo', setBusinessInfo);
+    fetchDataByUserId('Seller_BusinessDesc', setBusinessDesc);
+    fetchDataByUserId(
+      'Seller_BusinessShowRoomLocation',
+      setbusinessShowRoomLocation,
+    );
+    fetchDataByUserId('Seller_BusinessWorkingHours', setBusinessWorkingHours);
+  }, [userId]);
 
   const getBrandData = async () => {
     try {
@@ -678,9 +756,9 @@ const ActiveDetailsScreen = ({navigation, route}) => {
     setSelectedImage(newImages);
   };
 
-  const saveData = async () => {
+  const insertIntoInactive = async () => {
     try {
-      const docData = {
+      let docData = {
         Brand: brandName,
         BrandLogo: brandLogo,
         Year: selectedYear,
@@ -697,74 +775,53 @@ const ActiveDetailsScreen = ({navigation, route}) => {
         Price: price,
         postedDate: formattedDate,
         UserId: userId,
+        Name: name,
+        City: city,
+        State: state,
+        country: country,
+        ContactNumber: contactNumber,
+        Checked: checked,
       };
 
-      await addDoc(collection(db, 'Seller_Active'), docData).then(() => {
-        navigation.navigate('AllAds');
-        setBrandName('');
-        setBrandLogo('');
-        setSelectedYear('');
-        setSelectedModelName('');
-        setSelectedModelImage('');
-        setSelecteVarient('');
-        setSelectedCondition(null);
-        setSelecteColor('');
-        setSelecteregistationCenter('');
-        setSelectedImage([]);
-        setSelectedInteriorOptions([]);
-        setselectedExteriorOptions([]);
-        setTitle('');
-        setPrice('');
-        console.log('Data inserted into Seller_Active successfully!');
+      if (checked) {
+        docData = {
+          ...docData,
+          BusinessInfo: businessInfo,
+          BusinessDesc: businessDesc,
+          BusinessShowRoomLocation: businessShowRoomLocation,
+          BusinessWorkingHours: businessWorkingHours,
+        };
+      }
+
+      await addDoc(collection(db, 'Seller_InActive'), docData).then(() => {
+        console.log('Data inserted into Seller_InActive successfully!');
       });
     } catch (error) {
       console.error('Error ==> ', error);
     }
   };
 
-  const insertIntoInactive = async () => {
+  const removeThisItemFromActiveScreen = async () => {
     try {
-      const docData = {
-        Brand: brandName,
-        BrandLogo: brandLogo,
-        Year: selectedYear,
-        ModelName: selectedModelName,
-        ModelImage: selectedModelImage,
-        Variant: selectVarient,
-        Carcondition: selectedCondition,
-        Color: selectColor,
-        RegistationCenter: selectregistationCenter,
-        CarPhotos: selectedImage,
-        Interior: selectedInteriorOptions,
-        Exterior: selectedExteriorOptions,
-        Title: title,
-        Price: price,
-        postedDate: formattedDate,
-        UserId: userId,
-      };
-
-      await addDoc(collection(db, 'Seller_InActive'), {
-        docData,
-      }).then(() => {
-        navigation.navigate('Dashboard');
-        setBrandName('');
-        setBrandLogo('');
-        setSelectedYear('');
-        setSelectedModelName('');
-        setSelectedModelImage('');
-        setSelecteVarient('');
-        setSelectedCondition(null);
-        setSelecteColor('');
-        setSelecteregistationCenter('');
-        setSelectedImage([]);
-        setSelectedInteriorOptions([]);
-        setselectedExteriorOptions([]);
-        setTitle('');
-        setPrice('');
-        console.log('Data inserted into Seller_InActive successfully!');
+      await deleteDoc(doc(db, 'Seller_Active', item.id)).then(() => {
+        navigation.navigate('BottomTabNavigator');
+        console.log('Successfully deleted data from Seller_Active collection');
       });
     } catch (error) {
-      console.error('Error ==> ', error);
+      console.error('Error removing Active:', error);
+    }
+  };
+
+  const UpdateThisItemFromActiveScreen = async () => {
+    if (createAdId) {
+      try {
+        await updateDoc(doc(db, 'CreateAD', createAdId), {
+          Status: 'Inactive',
+        });
+        console.log('Status updated successfully!');
+      } catch (error) {
+        console.error('Error removing Active:', error);
+      }
     }
   };
 
@@ -784,7 +841,7 @@ const ActiveDetailsScreen = ({navigation, route}) => {
         </View>
 
         {/* Display Years Only After Brand Selection */}
-        {brandLogo && brandName && (
+        {brandid && (
           <>
             <Text
               style={{
@@ -807,7 +864,7 @@ const ActiveDetailsScreen = ({navigation, route}) => {
         )}
 
         {/* show all model of car */}
-        {brandLogo && brandName && selectedYear && (
+        {brandid && yearId && (
           <>
             <Text
               style={{
@@ -840,33 +897,28 @@ const ActiveDetailsScreen = ({navigation, route}) => {
         )}
 
         {/* select model all varients */}
-        {brandLogo &&
-          brandName &&
-          selectedYear &&
-          selectedModelImage &&
-          selectedModelName && (
-            <>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '400',
-                  color: 'black',
-                  textAlign: 'justify',
-                  marginBottom: 10,
-                  marginTop: 20,
-                }}>
-                Select a varient for the {selectedModelName} {selectedYear}{' '}
-                model
-              </Text>
-              <FlatList
-                data={varientData}
-                renderItem={renderVarient}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(item, index) => index.toString()}
-              />
-            </>
-          )}
+        {brandid && yearId && modelId && (
+          <>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '400',
+                color: 'black',
+                textAlign: 'justify',
+                marginBottom: 10,
+                marginTop: 20,
+              }}>
+              Select a varient for the {selectedModelName} {selectedYear} model
+            </Text>
+            <FlatList
+              data={varientData}
+              renderItem={renderVarient}
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item, index) => index.toString()}
+            />
+          </>
+        )}
 
         {/* Car condition */}
         {brandid && yearId && modelId && varientId && (
@@ -1125,6 +1177,109 @@ const ActiveDetailsScreen = ({navigation, route}) => {
             </>
           )}
 
+        {/* Contact details */}
+        {brandid &&
+          yearId &&
+          modelId &&
+          varientId &&
+          colorId &&
+          RegistationCenterId && (
+            <>
+              <View style={{marginTop: 25}}>
+                <Text
+                  style={{
+                    fontWeight: '500',
+                    fontSize: 16,
+                    color: 'black',
+                  }}>
+                  Contact details
+                </Text>
+              </View>
+              <View style={{marginBottom: 5, marginTop: 15}}>
+                <Text style={{fontWeight: '600'}}>Give your add a Name</Text>
+              </View>
+              <Textinput
+                placeholder="Enter Name"
+                value={name}
+                onChangeText={text => setName(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Give your add a city</Text>
+              </View>
+              <Textinput
+                placeholder="Enter city"
+                value={city}
+                onChangeText={text => setCity(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Give your add a state</Text>
+              </View>
+              <Textinput
+                placeholder="Enter state"
+                value={state}
+                onChangeText={text => setState(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>Give your add a country</Text>
+              </View>
+              <Textinput
+                placeholder="Enter country"
+                value={country}
+                onChangeText={text => setCountry(text)}
+              />
+              <View style={{marginBottom: 5, marginTop: 10}}>
+                <Text style={{fontWeight: '600'}}>
+                  Give your add a ContactNumber
+                </Text>
+              </View>
+              <Textinput
+                placeholder="Enter Contactnumber"
+                value={contactNumber}
+                onChangeText={text => setContactNumber(text)}
+              />
+            </>
+          )}
+
+        {/* Business Profile details */}
+        {brandid &&
+          yearId &&
+          modelId &&
+          varientId &&
+          colorId &&
+          RegistationCenterId && (
+            <>
+              <View style={{marginTop: 25}}>
+                <Text
+                  style={{
+                    fontWeight: '500',
+                    fontSize: 16,
+                    color: 'black',
+                  }}>
+                  Business details
+                </Text>
+              </View>
+              <View
+                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '500',
+                    marginTop: 10,
+                    marginBottom: 20,
+                  }}>
+                  Add Business details
+                </Text>
+                <Checkbox
+                  color="#01a0e9"
+                  status={checked ? 'checked' : 'unchecked'}
+                  onPress={() => {
+                    toggleCheckbox();
+                  }}
+                />
+              </View>
+            </>
+          )}
+
         {/* Buttons */}
         {brandid &&
           yearId &&
@@ -1133,19 +1288,18 @@ const ActiveDetailsScreen = ({navigation, route}) => {
           colorId &&
           RegistationCenterId && (
             <>
-              <TouchableOpacity onPress={saveData}>
-                <Button
-                  name="Review and Publish"
-                  backgroundColor="#01a0e9"
-                  color="white"
-                />
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={insertIntoInactive}>
+              <TouchableOpacity
+                onPress={() => {
+                  insertIntoInactive().then(() => {
+                    UpdateThisItemFromActiveScreen().then(() => {
+                      removeThisItemFromActiveScreen();
+                    });
+                  });
+                }}>
                 <Button
                   name="Inactive"
-                  backgroundColor="#d5eefb"
-                  color="#0084cc"
+                  backgroundColor="#01a0e9"
+                  color="white"
                 />
               </TouchableOpacity>
             </>

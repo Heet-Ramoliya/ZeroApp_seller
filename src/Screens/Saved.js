@@ -137,7 +137,7 @@ const Saved = () => {
         <View style={styles.detailsContainer}>
           <View style={styles.headerContainer}>
             <View style={{flex: 1}}>
-              <Text style={styles.carName}>{item.Title}</Text>
+              <Text style={styles.carName}>{item.ModelName}</Text>
               <View style={styles.infoContainer}>
                 <Text>{item.RegistationCenter}</Text>
               </View>
@@ -259,7 +259,7 @@ const Saved = () => {
         <Image
           source={{uri: item.brandLogo}}
           style={{height: 50, width: 50}}
-          resizeMode="contain"
+          resizeMode="cover"
         />
       </TouchableOpacity>
     );
