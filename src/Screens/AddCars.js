@@ -598,50 +598,6 @@ const AddCars = ({navigation}) => {
     setSelectedImage(newImages);
   };
 
-  // const saveData = async () => {
-  //   try {
-  //     const docData = {
-  //       Brand: brandName,
-  //       BrandLogo: brandLogo,
-  //       Year: selectedYear,
-  //       ModelName: selectedModelName,
-  //       ModelImage: selectedModelImage,
-  //       Variant: selectVarient,
-  //       Carcondition: selectedCondition,
-  //       Color: selectColor,
-  //       RegistationCenter: selectregistationCenter,
-  //       CarPhotos: selectedImage,
-  //       Interior: selectedInteriorOptions,
-  //       Exterior: selectedExteriorOptions,
-  //       Title: title,
-  //       Price: price,
-  //       postedDate: formattedDate,
-  //       UserId: userId,
-  //       Status: 'Active',
-  //       Name: name,
-  //       City: city,
-  //       State: state,
-  //       country: country,
-  //       ContactNumber: contactNumber,
-  //     };
-
-  //     if (checked) {
-  //       businessData = {
-  //         BusinessInfo: businessInfo,
-  //         BusinessDesc: businessDesc,
-  //         BusinessShowRoomLocation: businessShowRoomLocation,
-  //         BusinessWorkingHours: businessWorkingHours,
-  //       };
-  //     }
-
-  //     await addDoc(collection(db, 'CreateAD'), docData).then(() => {
-  //       console.log('Data inserted successfully!');
-  //     });
-  //   } catch (error) {
-  //     console.error('Error ==> ', error);
-  //   }
-  // };
-
   const saveData = async () => {
     try {
       let docData = {

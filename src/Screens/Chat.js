@@ -1,11 +1,12 @@
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   View,
-  TouchableOpacity,
   TextInput,
+  TouchableOpacity,
   StyleSheet,
   Image,
+  ActivityIndicator,
 } from 'react-native';
-import React, {useEffect, useState, useCallback} from 'react';
 import Icon from 'react-native-vector-icons/Feather';
 import Icons from 'react-native-vector-icons/Ionicons';
 import {GiftedChat, Bubble} from 'react-native-gifted-chat';
@@ -23,36 +24,7 @@ const Chat = ({route}) => {
   const [businessProfileData, setBusinessProfileData] = useState([]);
   const [businessName, setBusinessName] = useState('');
   const [businessLogo, setBusinessLogo] = useState('');
-
-  useEffect(() => {
-    if (storedUserId) {
-      const q = query(
-        collection(db, 'Seller_BusinessInfo'),
-        where('UserId', '==', storedUserId),
-      );
-
-      const unsubscribe = onSnapshot(
-        q,
-        querySnapshot => {
-          const list = [];
-          querySnapshot.forEach(doc => {
-            list.push({...doc.data()});
-          });
-          setBusinessProfileData(list);
-          if (list.length > 0) {
-            const user = list[0];
-            setBusinessName(user.BusinessName);
-            setBusinessLogo(user.BusinessLogo);
-          }
-        },
-        error => {
-          console.error('Error listening for changes:', error);
-        },
-      );
-
-      return () => unsubscribe();
-    }
-  }, [storedUserId]);
+  const [loading, setLoading] = useState(true); // Added loading state
 
   useEffect(() => {
     const getUserIdFromStorage = async () => {
@@ -70,30 +42,66 @@ const Chat = ({route}) => {
   }, []);
 
   useEffect(() => {
-    const listenForMessages = () => {
-      if (data.FirstName && businessName) {
-        const chatsRef = ref(
-          RealTimeDatabase,
-          `Users/${data.FirstName}To${businessName}`,
-        );
-        onValue(chatsRef, snapshot => {
-          const data = snapshot.val();
-          if (data) {
-            const messagesArray = Object.keys(data).map(key => ({
-              _id: key,
-              createdAt: data[key].createdAt,
-              text: data[key].text,
-              user: {
-                _id: data[key].user._id,
-              },
-              msgType: data[key].msgType,
-            }));
-            setMessages(messagesArray.reverse());
-          } else {
-            setMessages([]);
+    const fetchBusinessInfo = async () => {
+      if (!storedUserId) return;
+
+      const q = query(
+        collection(db, 'Seller_BusinessInfo'),
+        where('UserId', '==', storedUserId),
+      );
+
+      const unsubscribe = onSnapshot(
+        q,
+        querySnapshot => {
+          const list = [];
+          querySnapshot.forEach(doc => {
+            list.push({...doc.data()});
+          });
+          if (list.length > 0) {
+            const user = list[0];
+            setBusinessProfileData(list);
+            setBusinessName(user.BusinessName);
+            setBusinessLogo(user.BusinessLogo);
           }
-        });
-      }
+          setLoading(false);
+        },
+        error => {
+          console.error('Error listening for changes:', error);
+          setLoading(false);
+        },
+      );
+
+      return () => unsubscribe();
+    };
+
+    fetchBusinessInfo();
+  }, [storedUserId]);
+
+  useEffect(() => {
+    const listenForMessages = () => {
+      if (!data.FirstName || !businessName) return;
+
+      const chatsRef = ref(
+        RealTimeDatabase,
+        `Users/${data.FirstName}To${businessName}`,
+      );
+      onValue(chatsRef, snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          const messagesArray = Object.keys(data).map(key => ({
+            _id: key,
+            createdAt: data[key].createdAt,
+            text: data[key].text,
+            user: {
+              _id: data[key].user._id,
+            },
+            msgType: data[key].msgType,
+          }));
+          setMessages(messagesArray.reverse());
+        } else {
+          setMessages([]);
+        }
+      });
     };
 
     listenForMessages();
@@ -122,7 +130,11 @@ const Chat = ({route}) => {
           newMessage.text = message.text;
         }
 
-        await set(newMessageRef, newMessage);
+        try {
+          await set(newMessageRef, newMessage);
+        } catch (error) {
+          console.error('Error sending message:', error);
+        }
       });
 
       setText('');
@@ -188,6 +200,14 @@ const Chat = ({route}) => {
     );
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <GiftedChat
@@ -208,7 +228,11 @@ const styles = StyleSheet.create({
     flex: 1,
     marginBottom: 20,
   },
-
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   inputToolbarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
