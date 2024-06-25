@@ -17,27 +17,4 @@ export const GetFCMToken = async () => {
   }
 };
 
-export const PushNotification = () => {
-  messaging().onNotificationOpenedApp(remoteMessage => {
-    console.log(
-      'Notification caused app to open for background state ==>',
-      remoteMessage.notification,
-    );
-  });
 
-  messaging()
-    .getInitialNotification()
-    .then(remoteMessage => {
-      if (remoteMessage) {
-        console.log(
-          'notification caused app to open from quit state ==>',
-          remoteMessage.notification,
-        );
-      }
-    });
-
-  messaging().onMessage(async remoteMessage => {
-    remoteMessage.notification,
-      console.log('notification on forground state....', remoteMessage);
-  });
-};

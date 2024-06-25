@@ -12,6 +12,8 @@ import {collection, onSnapshot, query, where} from 'firebase/firestore';
 import {db, RealTimeDatabase} from '../Firebase/Config';
 import Icons from 'react-native-vector-icons/FontAwesome6';
 import {onValue, ref} from 'firebase/database';
+import messaging from '@react-native-firebase/messaging';
+import {PushNotification} from '../Notification/firebase';
 
 const Inbox = ({navigation}) => {
   const [buyerData, setBuyerData] = useState([]);
@@ -20,6 +22,48 @@ const Inbox = ({navigation}) => {
   const [businessProfileData, setBusinessProfileData] = useState([]);
   const [businessName, setBusinessName] = useState('');
   const [loading, setLoading] = useState(true);
+
+  const sendPushNotifications = async (body, title) => {
+    let token = await messaging().getToken();
+
+    const requestPayload = {
+      message: {
+        token: token,
+        data: {},
+        notification: {
+          body: body,
+          title: title,
+        },
+      },
+    };
+
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization:
+        'Bearer ya29.a0AXooCgsv--4AoSewqJ1CIgrh65ozWzGyJuc_CzdAiFP1bPoeEs06CYNxMOs2SLKM3YztFS1_ATEyPLebjF-_aTGj4jX8OKAFqp-1qi1NZBDmx2uK5lUB3ZDhp2f1GnDvruoDbo8OQlruM_D5K9klQ0egU0-1ZOEDfzg2EAaCgYKASsSARISFQHGX2Mi-JDcPSxzNjEoezoPZs5qJA0173',
+    };
+
+    let response = await fetch(
+      'https://fcm.googleapis.com/v1/projects/zeroapp-66e9a/messages:send',
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestPayload),
+      },
+    );
+
+    if (response.ok) {
+      messaging().setBackgroundMessageHandler(async remoteMessage => {
+        console.log('Message handled in the background!', remoteMessage);
+      });
+    } else {
+      console.error(
+        'Failed to send push notification:',
+        response.status,
+        response.statusText,
+      );
+    }
+  };
 
   useEffect(() => {
     const getUserIdFromStorage = async () => {
@@ -110,9 +154,12 @@ const Inbox = ({navigation}) => {
                   null,
                 );
 
+                sendPushNotifications(lastMessage.text, buyer.FirstName);
+
                 return {
                   ...buyer,
-                  lastMessage: lastMessage ? lastMessage.text : null,
+                  lastMessageText: lastMessage ? lastMessage.text : null,
+                  lastMessageTime: lastMessage ? lastMessage.time : null,
                 };
               }
               return null;
@@ -171,11 +218,12 @@ const Inbox = ({navigation}) => {
                 <Text style={{fontSize: 17, color: 'black', fontWeight: '500'}}>
                   {item.FirstName}
                 </Text>
-                <Text>{item.lastMessage}</Text>
+                <Text>{item.lastMessageText}</Text>
               </View>
 
               <View style={{justifyContent: 'center'}}>
-                <Icons name="angle-right" size={20} color="#20abeb" />
+                <Text>{item.lastMessageTime}</Text>
+                {/* <Icons name="angle-right" size={20} color="#20abeb" /> */}
               </View>
             </View>
           </View>

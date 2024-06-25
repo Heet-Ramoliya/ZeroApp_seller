@@ -15,6 +15,7 @@ import {ref, onValue, push, set} from 'firebase/database';
 import {db, RealTimeDatabase} from '../Firebase/Config';
 import moment from 'moment';
 import {collection, onSnapshot, query, where} from 'firebase/firestore';
+import messaging from '@react-native-firebase/messaging';
 
 const Chat = ({route}) => {
   const {data} = route.params;
@@ -24,7 +25,25 @@ const Chat = ({route}) => {
   const [businessProfileData, setBusinessProfileData] = useState([]);
   const [businessName, setBusinessName] = useState('');
   const [businessLogo, setBusinessLogo] = useState('');
-  const [loading, setLoading] = useState(true); // Added loading state
+  const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState('');
+
+  const updateTime = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}`;
+    setCurrentTime(formattedTime);
+  };
+
+  useEffect(() => {
+    updateTime();
+    const timer = setInterval(updateTime, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const getUserIdFromStorage = async () => {
@@ -91,6 +110,7 @@ const Chat = ({route}) => {
           const messagesArray = Object.keys(data).map(key => ({
             _id: key,
             createdAt: data[key].createdAt,
+            time: data[key].currentTime,
             text: data[key].text,
             user: {
               _id: data[key].user._id,
@@ -120,6 +140,7 @@ const Chat = ({route}) => {
         );
         const newMessage = {
           createdAt: timestamp,
+          time: currentTime,
           user: {
             _id: storedUserId,
           },

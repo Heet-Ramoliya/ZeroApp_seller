@@ -9,7 +9,15 @@ import {
   StyleSheet,
 } from 'react-native';
 import {db} from '../Firebase/Config';
-import {addDoc, collection, getDocs, query, where} from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+} from 'firebase/firestore';
 import ImagePicker from 'react-native-image-crop-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Icons from 'react-native-vector-icons/Entypo';
@@ -749,11 +757,21 @@ const ActiveDetailsScreen = ({navigation, route}) => {
       }
 
       await addDoc(collection(db, 'CreateAD'), docData).then(() => {
-        navigation.navigate('BottomTabNavigator');
         console.log('Data inserted successfully!');
       });
     } catch (error) {
       console.error('Error ==> ', error);
+    }
+  };
+
+  const removeThisItemFromDraftScreen = async () => {
+    try {
+      await deleteDoc(doc(db, 'Seller_Draft', item.id)).then(() => {
+        navigation.navigate('BottomTabNavigator');
+        console.log('Successfully deleted data from Seller_Draft collection');
+      });
+    } catch (error) {
+      console.error('Error removing Active:', error);
     }
   };
 
@@ -1220,7 +1238,12 @@ const ActiveDetailsScreen = ({navigation, route}) => {
           colorId &&
           RegistationCenterId && (
             <>
-              <TouchableOpacity onPress={saveData}>
+              <TouchableOpacity
+                onPress={() => {
+                  saveData().then(() => {
+                    removeThisItemFromDraftScreen();
+                  });
+                }}>
                 <Button
                   name="Review and Publish"
                   backgroundColor="#01a0e9"
