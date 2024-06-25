@@ -13,7 +13,6 @@ import {db, RealTimeDatabase} from '../Firebase/Config';
 import Icons from 'react-native-vector-icons/FontAwesome6';
 import {onValue, ref} from 'firebase/database';
 import messaging from '@react-native-firebase/messaging';
-import {PushNotification} from '../Notification/firebase';
 
 const Inbox = ({navigation}) => {
   const [buyerData, setBuyerData] = useState([]);

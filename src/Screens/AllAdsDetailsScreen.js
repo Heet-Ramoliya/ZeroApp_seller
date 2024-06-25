@@ -5,16 +5,12 @@ import {
   ScrollView,
   FlatList,
   Image,
-  TouchableOpacity,
   StyleSheet,
 } from 'react-native';
 import {db} from '../Firebase/Config';
-import {addDoc, collection, getDocs, query, where} from 'firebase/firestore';
-import ImagePicker from 'react-native-image-crop-picker';
+import {collection, getDocs, query, where} from 'firebase/firestore';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Icons from 'react-native-vector-icons/Entypo';
 import Textinput from '../Components/Textinput';
-import Button from '../Components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Checkbox} from 'react-native-paper';
 

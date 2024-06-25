@@ -24,7 +24,6 @@ import Icons from 'react-native-vector-icons/Feather';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect} from '@react-navigation/native';
-import {sendPushNotifications} from '../Notification/NotificationService';
 
 const AllAds = ({navigation, searchQuery}) => {
   const [allData, setAllData] = useState([]);

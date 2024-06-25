@@ -1,12 +1,4 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  ToastAndroid,
-} from 'react-native';
+import {View, Text, TouchableOpacity, ToastAndroid} from 'react-native';
 import React, {useState} from 'react';
 import Textinput from '../Components/Textinput';
 import Button from '../Components/Button';

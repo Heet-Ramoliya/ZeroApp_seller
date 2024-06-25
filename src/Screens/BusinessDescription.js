@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native';
 import Progressbar from '../Components/Progressbar';
 import Button from '../Components/Button';

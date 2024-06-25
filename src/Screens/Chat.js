@@ -15,7 +15,6 @@ import {ref, onValue, push, set} from 'firebase/database';
 import {db, RealTimeDatabase} from '../Firebase/Config';
 import moment from 'moment';
 import {collection, onSnapshot, query, where} from 'firebase/firestore';
-import messaging from '@react-native-firebase/messaging';
 
 const Chat = ({route}) => {
   const {data} = route.params;

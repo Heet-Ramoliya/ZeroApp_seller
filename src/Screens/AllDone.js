@@ -2,7 +2,6 @@ import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Button from '../Components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import auth from '@react-native-firebase/auth';
 
 const AllDone = ({navigation, route}) => {
   const {mode} = route.params;

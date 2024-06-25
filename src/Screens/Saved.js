@@ -25,7 +25,6 @@ import {
 import {db} from '../Firebase/Config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect} from '@react-navigation/native';
-import {carDatas} from '../Constant/newAd';
 import Button from '../Components/Button';
 
 const Saved = () => {

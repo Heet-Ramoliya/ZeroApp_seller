@@ -12,7 +12,6 @@ import {db} from '../Firebase/Config';
 import {
   addDoc,
   collection,
-  doc,
   getDocs,
   query,
   where,
