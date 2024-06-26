@@ -14,7 +14,7 @@ import Icons from 'react-native-vector-icons/FontAwesome6';
 import {onValue, ref} from 'firebase/database';
 import messaging from '@react-native-firebase/messaging';
 
-const Inbox = ({navigation}) => {
+const Inbox = ({navigation, route}) => {
   const [buyerData, setBuyerData] = useState([]);
   const [userId, setUserId] = useState('');
   const [buyersWithMessages, setBuyersWithMessages] = useState([]);
@@ -39,7 +39,7 @@ const Inbox = ({navigation}) => {
     const headers = {
       'Content-Type': 'application/json',
       Authorization:
-        'Bearer ya29.a0AXooCgsv--4AoSewqJ1CIgrh65ozWzGyJuc_CzdAiFP1bPoeEs06CYNxMOs2SLKM3YztFS1_ATEyPLebjF-_aTGj4jX8OKAFqp-1qi1NZBDmx2uK5lUB3ZDhp2f1GnDvruoDbo8OQlruM_D5K9klQ0egU0-1ZOEDfzg2EAaCgYKASsSARISFQHGX2Mi-JDcPSxzNjEoezoPZs5qJA0173',
+        'Bearer ya29.a0AXooCgusxOYAmLUU9q8w7E07kwudJaf7psSv7dgKa0SmN-2Sgw98uM0D5WSyImELhTCrBtZGjixZLULmWe06P-2UCpsb9s01JDOG80NcX1cpjWB6mDPrlpBKfPdXan73rBT66TECaJoqe3JBhK9pF80wXN2nkdx-xWIUtAaCgYKAV0SARISFQHGX2MiiTTnkO4lC8OZx3JUVjO4dA0173',
     };
 
     let response = await fetch(
@@ -181,7 +181,10 @@ const Inbox = ({navigation}) => {
   const renderItem = ({item}) => (
     <TouchableOpacity
       onPress={() => {
-        navigation.navigate('Chat', {data: item});
+        navigation.navigate('Chat', {
+          data: item,
+          chatTitle: item.FirstName,
+        });
       }}>
       <View
         style={{

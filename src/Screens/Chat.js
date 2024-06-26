@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Image,
   ActivityIndicator,
+  Text,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import Icons from 'react-native-vector-icons/Ionicons';
@@ -229,17 +230,19 @@ const Chat = ({route}) => {
   }
 
   return (
-    <View style={styles.container}>
-      <GiftedChat
-        messages={messages}
-        onSend={messages => onSend(messages)}
-        user={{_id: storedUserId}}
-        renderInputToolbar={renderInputToolbar}
-        renderBubble={renderBubble}
-        // renderAvatar={renderAvatar}
-        showUserAvatar={false}
-      />
-    </View>
+    <>
+      <View style={styles.container}>
+        <GiftedChat
+          messages={messages}
+          onSend={messages => onSend(messages)}
+          user={{_id: storedUserId}}
+          renderInputToolbar={renderInputToolbar}
+          renderBubble={renderBubble}
+          // renderAvatar={renderAvatar}
+          showUserAvatar={false}
+        />
+      </View>
+    </>
   );
 };
 

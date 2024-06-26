@@ -44,7 +44,6 @@ const StackNavigator = () => {
           options={{
             headerShown: true,
             title: 'Sign in',
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -52,7 +51,6 @@ const StackNavigator = () => {
           component={Register}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -60,7 +58,6 @@ const StackNavigator = () => {
           component={Dashboard}
           options={{
             headerShown: false,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -96,7 +93,6 @@ const StackNavigator = () => {
           component={BusinessProfile}
           options={{
             headerShown: false,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -104,7 +100,6 @@ const StackNavigator = () => {
           component={BusinessInfo}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -112,7 +107,6 @@ const StackNavigator = () => {
           component={BusinessDescription}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -120,7 +114,6 @@ const StackNavigator = () => {
           component={BusinesssShowRoomLocation}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
             title: 'ShowRoomLocation',
           }}
         />
@@ -129,7 +122,6 @@ const StackNavigator = () => {
           component={SelectWorkingHours}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -137,7 +129,6 @@ const StackNavigator = () => {
           component={AllDone}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -145,7 +136,6 @@ const StackNavigator = () => {
           component={SystemPermission}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -153,7 +143,6 @@ const StackNavigator = () => {
           component={AddCars}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -161,7 +150,6 @@ const StackNavigator = () => {
           component={ChangePassword}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -176,7 +164,6 @@ const StackNavigator = () => {
           component={Drafts}
           options={{
             headerShown: true,
-            headerTitleAlign: 'center',
           }}
         />
         <Stack.Screen
@@ -197,10 +184,10 @@ const StackNavigator = () => {
         <Stack.Screen
           name="Chat"
           component={Chat}
-          options={{
+          options={({route}) => ({
+            title: route.params?.chatTitle || 'Chat',
             headerShown: true,
-            headerTitleAlign: 'center',
-          }}
+          })}
         />
         <Stack.Screen
           name="AllAdsDetailsScreen"
