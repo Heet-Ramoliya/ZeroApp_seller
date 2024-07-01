@@ -13,6 +13,7 @@ import {db, RealTimeDatabase} from '../Firebase/Config';
 import Icons from 'react-native-vector-icons/FontAwesome6';
 import {onValue, ref} from 'firebase/database';
 import messaging from '@react-native-firebase/messaging';
+import {constant} from '../Constant/constant';
 
 const Inbox = ({navigation, route}) => {
   const [buyerData, setBuyerData] = useState([]);
@@ -38,8 +39,7 @@ const Inbox = ({navigation, route}) => {
 
     const headers = {
       'Content-Type': 'application/json',
-      Authorization:
-        'Bearer ya29.a0AXooCgusxOYAmLUU9q8w7E07kwudJaf7psSv7dgKa0SmN-2Sgw98uM0D5WSyImELhTCrBtZGjixZLULmWe06P-2UCpsb9s01JDOG80NcX1cpjWB6mDPrlpBKfPdXan73rBT66TECaJoqe3JBhK9pF80wXN2nkdx-xWIUtAaCgYKAV0SARISFQHGX2MiiTTnkO4lC8OZx3JUVjO4dA0173',
+      Authorization: constant.ACCESS_TOKEN,
     };
 
     let response = await fetch(

@@ -12,7 +12,10 @@ import {db} from '../Firebase/Config';
 import {
   addDoc,
   collection,
+  doc,
+  getDoc,
   getDocs,
+  onSnapshot,
   query,
   where,
 } from 'firebase/firestore';
@@ -22,7 +25,9 @@ import Icons from 'react-native-vector-icons/Entypo';
 import Textinput from '../Components/Textinput';
 import Button from '../Components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Checkbox} from 'react-native-paper';
+import {Checkbox, Title} from 'react-native-paper';
+import {constant} from '../Constant/constant';
+import messaging from '@react-native-firebase/messaging';
 
 const AddCars = ({navigation}) => {
   const [branddata, setBranddata] = useState([]);
@@ -70,6 +75,87 @@ const AddCars = ({navigation}) => {
   const [businessDesc, setBusinessDesc] = useState([]);
   const [businessShowRoomLocation, setbusinessShowRoomLocation] = useState([]);
   const [businessWorkingHours, setBusinessWorkingHours] = useState([]);
+  const [buyerData, setBuyerData] = useState([]);
+  const [updateddata, setUpdateddata] = useState('');
+
+  console.log('updateddata ==> ', updateddata);
+
+  useEffect(() => {
+    if (userId) {
+      const q = query(collection(db, 'Name'));
+
+      const unsubscribe = onSnapshot(
+        q,
+        querySnapshot => {
+          const list = [];
+          querySnapshot.forEach(doc => {
+            const data = doc.data();
+            list.push({
+              // FirstName: data.FirstName,
+              // LastName: data.LastName,
+              // UserId: data.UserId,
+              fcm_token: data.fcm_token,
+              // image: data.image,
+            });
+          });
+          setBuyerData(list);
+        },
+        error => {
+          console.error('Error listening for changes:', error);
+        },
+      );
+
+      return () => unsubscribe();
+    }
+  }, [userId]);
+
+  const sendPushNotifications = async (docData, updatedData) => {
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: constant.ACCESS_TOKEN,
+    };
+
+    for (const {fcm_token} of buyerData) {
+      const requestPayload = {
+        message: {
+          token: fcm_token,
+          notification: {
+            title: 'Add new post',
+            body: `New post added: ${docData.Title} for ${docData.Price}`,
+          },
+          data: {
+            postId: updatedData,
+          },
+        },
+      };
+
+      try {
+        const response = await fetch(
+          'https://fcm.googleapis.com/v1/projects/zeroapp-66e9a/messages:send',
+          {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(requestPayload),
+          },
+        );
+
+        if (response.ok) {
+          console.log(`Notification sent to ${fcm_token}`);
+          messaging().setBackgroundMessageHandler(async remoteMessage => {
+            console.log('Message handled in the background!', remoteMessage);
+          });
+        } else {
+          console.error(
+            'Failed to send push notification:',
+            response.status,
+            response.statusText,
+          );
+        }
+      } catch (error) {
+        console.error('Error sending push notification:', error);
+      }
+    }
+  };
 
   const toggleCheckbox = () => {
     setChecked(!checked);
@@ -597,6 +683,21 @@ const AddCars = ({navigation}) => {
     setSelectedImage(newImages);
   };
 
+  const getItemId = async docId => {
+    try {
+      const docRef = doc(db, 'CreateAD', docId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        setUpdateddata(docSnap.id);
+      } else {
+        console.error('No such document!');
+      }
+    } catch (error) {
+      console.error('Error retrieving document ID:', error);
+    }
+  };
+
   const saveData = async () => {
     try {
       let docData = {
@@ -635,12 +736,19 @@ const AddCars = ({navigation}) => {
         };
       }
 
-      await addDoc(collection(db, 'CreateAD'), docData);
+      const docRef = await addDoc(collection(db, 'CreateAD'), docData);
       console.log('Data inserted successfully!');
+
+      await getItemId(docRef.id);
+      sendPushNotifications(docData, docRef.id);
     } catch (error) {
       console.error('Error saving data:', error);
     }
   };
+
+  if (updateddata) {
+    console.log(updateddata);
+  }
 
   const addDataIntoActive = async () => {
     try {
