@@ -1,4 +1,0 @@
-export const constant = {
-  ACCESS_TOKEN:
-    'Bearer ya29.a0AXooCgum0ULlSsjs-RN8yuEbiocERo8hczlywEVy4N2w_R_mQL3QKJ5v8Zj9xVqUx-DkYsrLTr2WXkD1_oLfR1gXvJNTv7qCx1LjuxN7ygX_bxHcpqOxhA_ei71XGhKYaE9Fh2uJ0FmOv8voa71M8QoCnsHkldiRG5T8XgaCgYKAYkSARISFQHGX2Miy5T031PcnRKSTCPp02GL5A0173',
-};

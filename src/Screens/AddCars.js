@@ -25,9 +25,9 @@ import Icons from 'react-native-vector-icons/Entypo';
 import Textinput from '../Components/Textinput';
 import Button from '../Components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Checkbox, Title} from 'react-native-paper';
-import {constant} from '../Constant/constant';
+import {Checkbox} from 'react-native-paper';
 import messaging from '@react-native-firebase/messaging';
+import {ACCESS_TOKEN} from '@env';
 
 const AddCars = ({navigation}) => {
   const [branddata, setBranddata] = useState([]);
@@ -112,7 +112,7 @@ const AddCars = ({navigation}) => {
   const sendPushNotifications = async (docData, updatedData) => {
     const headers = {
       'Content-Type': 'application/json',
-      Authorization: constant.ACCESS_TOKEN,
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
     };
 
     for (const {fcm_token} of buyerData) {
@@ -790,6 +790,7 @@ const AddCars = ({navigation}) => {
 
       await addDoc(collection(db, 'Seller_Active'), docData).then(() => {
         navigation.navigate('Dashboard');
+
         console.log('Data inserted into Seller_Active successfully!');
       });
     } catch (error) {
@@ -837,6 +838,18 @@ const AddCars = ({navigation}) => {
 
       await addDoc(collection(db, 'Seller_Draft'), docData).then(() => {
         navigation.navigate('Dashboard');
+        setSelectedModelName('');
+        setSelectedModelImage('');
+        setSelecteVarient('');
+        setSelectedCondition('');
+        setSelecteregistationCenter('');
+        setTitle('');
+        setPrice('');
+        setName('');
+        setCity('');
+        setState('');
+        setCountry('');
+        setContactNumber('');
         console.log('Data inserted into Seller_Draft successfully!');
       });
     } catch (error) {
