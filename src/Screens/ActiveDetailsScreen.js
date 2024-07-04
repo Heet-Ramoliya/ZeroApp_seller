@@ -734,28 +734,6 @@ const ActiveDetailsScreen = ({navigation, route}) => {
     );
   };
 
-  const uploadImage = () => {
-    ImagePicker.openPicker({
-      width: 150,
-      height: 150,
-      multiple: true,
-    })
-      .then(image => {
-        const imgpath = image.map(img => img.path);
-        setSelectedImage(imgpath);
-      })
-      .catch(e => {
-        console.log(e);
-      });
-  };
-
-  const removeImage = index => {
-    const newImages = selectedImage.filter(
-      (img, imgIndex) => imgIndex !== index,
-    );
-    setSelectedImage(newImages);
-  };
-
   const insertIntoInactive = async () => {
     try {
       let docData = {
@@ -1028,7 +1006,7 @@ const ActiveDetailsScreen = ({navigation, route}) => {
                   </View>
                 </View>
                 <View style={{flexDirection: 'row', flexWrap: 'wrap', flex: 1}}>
-                  {selectedImage.map((image, index) => (
+                  {item.CarPhotos.map((image, index) => (
                     <View
                       key={index}
                       style={{
@@ -1045,43 +1023,9 @@ const ActiveDetailsScreen = ({navigation, route}) => {
                           marginLeft: 10,
                         }}
                       />
-                      <TouchableOpacity
-                        onPress={() => {
-                          removeImage(index);
-                        }}
-                        style={{
-                          position: 'absolute',
-                          top: 5,
-                          right: 5,
-                          backgroundColor: '#d4d2d1',
-                          borderRadius: 12,
-                          padding: 5,
-                          justifyContent: 'flex-end',
-                        }}>
-                        <Icons name="cross" size={20} color="#9a9ea7" />
-                      </TouchableOpacity>
                     </View>
                   ))}
                 </View>
-                <TouchableOpacity onPress={uploadImage}>
-                  <View
-                    style={{
-                      flex: 1,
-                      flexDirection: 'row',
-                      backgroundColor: '#d5eefb',
-                      justifyContent: 'center',
-                      borderRadius: 100,
-                      padding: 8,
-                      marginTop: 10,
-                    }}>
-                    <Icon name="camera-outline" color="#20abeb" size={30} />
-                    <View style={{justifyContent: 'center', marginLeft: 5}}>
-                      <Text style={{color: '#20abeb'}}>
-                        Add your own pictures
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
               </View>
             </>
           )}

@@ -819,7 +819,7 @@ const AllAdsDetailsScreen = ({route}) => {
                   </View>
                 </View>
                 <View style={{flexDirection: 'row', flexWrap: 'wrap', flex: 1}}>
-                  {selectedImage.map((image, index) => (
+                  {item.CarPhotos.map((image, index) => (
                     <View
                       key={index}
                       style={{

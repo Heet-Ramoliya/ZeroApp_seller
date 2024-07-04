@@ -27,7 +27,8 @@ import Button from '../Components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Checkbox} from 'react-native-paper';
 import messaging from '@react-native-firebase/messaging';
-import {ACCESS_TOKEN} from '@env';
+import {constant} from '../constant/constant';
+import storage from '@react-native-firebase/storage';
 
 const AddCars = ({navigation}) => {
   const [branddata, setBranddata] = useState([]);
@@ -78,8 +79,6 @@ const AddCars = ({navigation}) => {
   const [buyerData, setBuyerData] = useState([]);
   const [updateddata, setUpdateddata] = useState('');
 
-  console.log('updateddata ==> ', updateddata);
-
   useEffect(() => {
     if (userId) {
       const q = query(collection(db, 'Name'));
@@ -112,7 +111,7 @@ const AddCars = ({navigation}) => {
   const sendPushNotifications = async (docData, updatedData) => {
     const headers = {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      Authorization: `Bearer ${constant.ACCESS_TOKEN}`,
     };
 
     for (const {fcm_token} of buyerData) {
@@ -698,7 +697,71 @@ const AddCars = ({navigation}) => {
     }
   };
 
-  const saveData = async () => {
+  //this function is add image into firebase cloud storage and get their image fullpath
+  const handleImagesIntoStorage = async () => {
+    try {
+      let uploadTasks = [];
+
+      for (let i = 0; i < selectedImage.length; i++) {
+        const uploadUri = selectedImage[i];
+
+        if (uploadUri) {
+          let filename = `CreateAD/image_${Date.now()}_${i}`;
+          const snapshot = await storage().ref(filename).putFile(uploadUri);
+          uploadTasks.push(snapshot.metadata.fullPath);
+        }
+      }
+
+      console.log('Uploaded Images:', uploadTasks);
+      return uploadTasks;
+    } catch (e) {
+      console.error('Error uploading images:', e);
+      throw e;
+    }
+  };
+
+  //this function is use for get image download url
+  const downloadImage = async uploadedImages => {
+    try {
+      let downloadUrls = [];
+
+      for (let i = 0; i < uploadedImages.length; i++) {
+        const filename = uploadedImages[i];
+        console.log('filename ==> ', filename);
+        const downloadURL = await storage().ref(filename).getDownloadURL();
+        downloadUrls.push(downloadURL);
+      }
+
+      console.log('Download URLs:', downloadUrls);
+      return downloadUrls;
+    } catch (e) {
+      console.error('Error downloading images:', e);
+      throw e;
+    }
+  };
+
+  const handlePress = async () => {
+    try {
+      const uploadedImages = await handleImagesIntoStorage();
+      const downloadUrls = await downloadImage(uploadedImages);
+      saveData(downloadUrls);
+      addDataIntoActive(downloadUrls);
+    } catch (e) {
+      console.error('Error in handlePress:', e);
+    }
+  };
+
+  const handleDraftClick = async () => {
+    try {
+      const uploadedImages = await handleImagesIntoStorage();
+      const downloadUrls = await downloadImage(uploadedImages);
+      addDataIntoDraft(downloadUrls);
+    } catch (e) {
+      console.error('Error in handlePress:', e);
+    }
+  };
+
+  const saveData = async downloadUrls => {
     try {
       let docData = {
         Brand: brandName,
@@ -710,7 +773,7 @@ const AddCars = ({navigation}) => {
         Carcondition: selectedCondition,
         Color: selectColor,
         RegistationCenter: selectregistationCenter,
-        CarPhotos: selectedImage,
+        CarPhotos: downloadUrls,
         Interior: selectedInteriorOptions,
         Exterior: selectedExteriorOptions,
         Title: title,
@@ -746,11 +809,7 @@ const AddCars = ({navigation}) => {
     }
   };
 
-  if (updateddata) {
-    console.log(updateddata);
-  }
-
-  const addDataIntoActive = async () => {
+  const addDataIntoActive = async downloadUrls => {
     try {
       let docData = {
         Brand: brandName,
@@ -762,7 +821,7 @@ const AddCars = ({navigation}) => {
         Carcondition: selectedCondition,
         Color: selectColor,
         RegistationCenter: selectregistationCenter,
-        CarPhotos: selectedImage,
+        CarPhotos: downloadUrls,
         Interior: selectedInteriorOptions,
         Exterior: selectedExteriorOptions,
         Title: title,
@@ -798,7 +857,7 @@ const AddCars = ({navigation}) => {
     }
   };
 
-  const addDataIntoDraft = async () => {
+  const addDataIntoDraft = async downloadUrls => {
     try {
       let docData = {
         Brand: brandName,
@@ -810,7 +869,7 @@ const AddCars = ({navigation}) => {
         Carcondition: selectedCondition,
         Color: selectColor,
         RegistationCenter: selectregistationCenter,
-        CarPhotos: selectedImage,
+        CarPhotos: downloadUrls,
         Interior: selectedInteriorOptions,
         Exterior: selectedExteriorOptions,
         Title: title,
@@ -838,18 +897,6 @@ const AddCars = ({navigation}) => {
 
       await addDoc(collection(db, 'Seller_Draft'), docData).then(() => {
         navigation.navigate('Dashboard');
-        setSelectedModelName('');
-        setSelectedModelImage('');
-        setSelecteVarient('');
-        setSelectedCondition('');
-        setSelecteregistationCenter('');
-        setTitle('');
-        setPrice('');
-        setName('');
-        setCity('');
-        setState('');
-        setCountry('');
-        setContactNumber('');
         console.log('Data inserted into Seller_Draft successfully!');
       });
     } catch (error) {
@@ -1272,7 +1319,7 @@ const AddCars = ({navigation}) => {
                 </Text>
               </View>
               <View style={{marginBottom: 5, marginTop: 15}}>
-                <Text style={{fontWeight: '600'}}>Give your add a Name</Text>
+                <Text style={{fontWeight: '600'}}>Enter your Name</Text>
               </View>
               <Textinput
                 placeholder="Enter Name"
@@ -1280,7 +1327,7 @@ const AddCars = ({navigation}) => {
                 onChangeText={text => setName(text)}
               />
               <View style={{marginBottom: 5, marginTop: 10}}>
-                <Text style={{fontWeight: '600'}}>Give your add a city</Text>
+                <Text style={{fontWeight: '600'}}>Enter your city</Text>
               </View>
               <Textinput
                 placeholder="Enter city"
@@ -1288,7 +1335,7 @@ const AddCars = ({navigation}) => {
                 onChangeText={text => setCity(text)}
               />
               <View style={{marginBottom: 5, marginTop: 10}}>
-                <Text style={{fontWeight: '600'}}>Give your add a state</Text>
+                <Text style={{fontWeight: '600'}}>Enter your state</Text>
               </View>
               <Textinput
                 placeholder="Enter state"
@@ -1296,7 +1343,7 @@ const AddCars = ({navigation}) => {
                 onChangeText={text => setState(text)}
               />
               <View style={{marginBottom: 5, marginTop: 10}}>
-                <Text style={{fontWeight: '600'}}>Give your add a country</Text>
+                <Text style={{fontWeight: '600'}}>Enter your country</Text>
               </View>
               <Textinput
                 placeholder="Enter country"
@@ -1305,7 +1352,7 @@ const AddCars = ({navigation}) => {
               />
               <View style={{marginBottom: 5, marginTop: 10}}>
                 <Text style={{fontWeight: '600'}}>
-                  Give your add a ContactNumber
+                  Enter your ContactNumber
                 </Text>
               </View>
               <Textinput
@@ -1370,11 +1417,7 @@ const AddCars = ({navigation}) => {
           selectregistationCenter &&
           selectedImage && (
             <>
-              <TouchableOpacity
-                onPress={() => {
-                  saveData();
-                  addDataIntoActive();
-                }}>
+              <TouchableOpacity onPress={handlePress}>
                 <Button
                   name="Review and Publish"
                   backgroundColor="#01a0e9"
@@ -1382,7 +1425,7 @@ const AddCars = ({navigation}) => {
                 />
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={addDataIntoDraft}>
+              <TouchableOpacity onPress={handleDraftClick}>
                 <Button
                   name="Save as Draft"
                   backgroundColor="#d5eefb"
