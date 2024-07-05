@@ -15,7 +15,6 @@ import Textinput from '../Components/Textinput';
 import {
   addDoc,
   collection,
-  doc,
   updateDoc,
   getDocs,
   query,
@@ -24,6 +23,7 @@ import {
 import {db} from '../Firebase/Config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import auth from '@react-native-firebase/auth';
+import storage from '@react-native-firebase/storage';
 
 const BusinessInfo = ({navigation, route}) => {
   const {mode} = route.params;
@@ -79,7 +79,67 @@ const BusinessInfo = ({navigation, route}) => {
     }
   };
 
-  const checkStatus = async () => {
+  //this function is add image into firebase cloud storage and get their image fullpath
+  const handleImageIntoStorage = async uploadUri => {
+    try {
+      if (!uploadUri) {
+        throw new Error('No image to upload');
+      }
+
+      let filename = `ProfileImages/image_${Date.now()}`;
+      const snapshot = await storage().ref(filename).putFile(uploadUri);
+
+      console.log('Uploaded Image:', snapshot.metadata.fullPath);
+      return snapshot.metadata.fullPath;
+    } catch (e) {
+      console.error('Error uploading image:', e);
+      throw e;
+    }
+  };
+
+  //this function is use for get image download url
+  const downloadImage = async uploadedImage => {
+    try {
+      if (!uploadedImage) {
+        throw new Error('No image to download');
+      }
+
+      const filename = uploadedImage;
+      console.log('filename ==> ', filename);
+      const downloadURL = await storage().ref(filename).getDownloadURL();
+
+      console.log('Download URL:', downloadURL);
+      return downloadURL;
+    } catch (e) {
+      console.error('Error downloading image:', e);
+      throw e;
+    }
+  };
+
+  const removeImage = async () => {
+    try {
+      const q = query(
+        collection(db, 'Seller_BusinessInfo'),
+        where('UserId', '==', userId),
+      );
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const businessInfo = querySnapshot.docs[0].data();
+        const image = businessInfo.BusinessLogo;
+
+        if (image) {
+          const storageRef = storage().refFromURL(image);
+          await storageRef.delete();
+        }
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching business info:', error);
+      setLoading(false);
+    }
+  };
+
+  const checkStatus = async downloadUrls => {
     if (mode === 'update') {
       try {
         const q = query(
@@ -92,8 +152,9 @@ const BusinessInfo = ({navigation, route}) => {
           await updateDoc(docRef, {
             BusinessName: name,
             ContactNumber: contactNumber,
-            BusinessLogo: selectedImage,
+            BusinessLogo: downloadUrls,
           });
+
           console.log('BusinessInfo Data updated successfully!');
           navigation.navigate('BusinessDescription', {mode: mode});
         } else {
@@ -107,7 +168,7 @@ const BusinessInfo = ({navigation, route}) => {
         const docData = {
           BusinessName: name,
           ContactNumber: contactNumber,
-          BusinessLogo: selectedImage,
+          BusinessLogo: downloadUrls,
           UserId: userId,
         };
         await addDoc(collection(db, 'Seller_BusinessInfo'), docData);
@@ -119,13 +180,24 @@ const BusinessInfo = ({navigation, route}) => {
     }
   };
 
+  const handlePress = async () => {
+    try {
+      const uploadedImage = await handleImageIntoStorage(selectedImage);
+      const downloadUrl = await downloadImage(uploadedImage);
+      await checkStatus(downloadUrl);
+    } catch (e) {
+      console.error('Error in handlePress:', e);
+    }
+  };
+
   const uploadLogo = () => {
     ImagePicker.openPicker({
       width: 150,
       height: 150,
-      cropping: true,
+      cropping: false,
     })
-      .then(image => {
+      .then(async image => {
+        await removeImage();
         setSelectedImage(image.path);
       })
       .catch(e => {
@@ -224,7 +296,7 @@ const BusinessInfo = ({navigation, route}) => {
             </View>
           </View>
         </View>
-        <TouchableOpacity onPress={checkStatus}>
+        <TouchableOpacity onPress={handlePress}>
           <View style={{marginTop: 25}}>
             <View>
               <Button name="Continue" backgroundColor="#01a0e9" color="white" />

@@ -3,7 +3,7 @@ import React, {useEffect, useState} from 'react';
 import ProfileList from '../Components/ProfileList';
 import Button from '../Components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {collection, getDocs, query, where} from 'firebase/firestore';
+import {collection, onSnapshot, query, where} from 'firebase/firestore';
 import {db} from '../Firebase/Config';
 
 const Profile = ({navigation}) => {
@@ -29,26 +29,28 @@ const Profile = ({navigation}) => {
 
   useEffect(() => {
     if (userId) {
-      getProfileData(userId);
-    }
-  }, [userId]);
-
-  const getProfileData = async userId => {
-    try {
       const q = query(
         collection(db, 'Seller_BusinessInfo'),
         where('UserId', '==', userId),
       );
-      const docSnap = await getDocs(q);
-      let list = [];
-      docSnap.forEach(doc => {
-        list.push({...doc.data()});
-      });
-      setData(list);
-    } catch (error) {
-      console.error('Error fetching profile data: ', error);
+
+      const unsubscribe = onSnapshot(
+        q,
+        querySnapshot => {
+          const List = [];
+          querySnapshot.forEach(doc => {
+            List.push({...doc.data()});
+          });
+          setData(List);
+        },
+        error => {
+          console.error('Error listening for changes:', error);
+        },
+      );
+
+      return () => unsubscribe();
     }
-  };
+  }, [userId]);
 
   const logout = async () => {
     try {
